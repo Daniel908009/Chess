@@ -112,15 +112,96 @@ class Rook(Piece):
     # this is a simple implementation of the possible moves, I will need to add more conditions to the possible moves later on, currently it does not account if there is a piece in the way
     def possible_moves(self):
         self.moves = []
+        end_loop = False
         for i in range(8):
-            self.moves.append((self.x, i))
+            if self.color == 0:
+                for piece in dark_pieces:
+                    if piece.x == i and piece.y == self.y:
+                        end_loop = True
+                for piece in light_pieces:
+                    if piece.x == self.x and piece.y == self.y:
+                        pass
+                    elif piece.x == i and piece.y == self.y and not end_loop:
+                        end_loop = True
+                if not end_loop:
+                    self.moves.append((i, self.y))
+            else:
+                for piece in light_pieces:
+                    if piece.x == i and piece.y == self.y:
+                        end_loop = True
+                for piece in dark_pieces:
+                    if piece.x == self.x and piece.y == self.y:
+                        pass
+                    elif piece.x == i and piece.y == self.y and not end_loop:
+                        end_loop = True
+            
+                if not end_loop:
+                    self.moves.append((i, self.y))
+        print(self.moves)
+
+        end_loop = False
+
         for i in range(8):
-            self.moves.append((i, self.y))
+            if self.color == 0:
+                for piece in dark_pieces:
+                    if piece.x == self.x and piece.y == i:
+                        end_loop = True
+                for piece in light_pieces:
+                    if piece.x == self.x and piece.y == self.y:
+                        pass
+                    elif piece.x == self.x and piece.y == i and not end_loop:
+                        end_loop = True
+                if not end_loop:
+                    self.moves.append((self.x, i))
+            else:
+                for piece in light_pieces:
+                    if piece.x == self.x and piece.y == i:
+                        end_loop = True
+                for piece in dark_pieces:
+                    if piece.x == self.x and piece.y == self.y:
+                        pass
+                    elif piece.x == self.x and piece.y == i and not end_loop:
+                        end_loop = True
+            
+                if not end_loop:
+                    self.moves.append((self.x, i))
+        print(self.moves)
+            
+
+                                                                            # failed attempt to add more conditions to the possible moves
+                                                                    # conditions for each coordinate, if there is a piece in the way no more coordinates will be added
+                                                                    # and if there is an alied piece in the way, the coordinates after that piece will not be added
+                                                                    #if self.color == 0:
+                                                                    #    for piece in light_pieces:
+                                                                    #        if piece.x == self.x and piece.y == i:
+                                                                    #            end_loop = True
+                                                                    #    for piece in dark_pieces:
+                                                                    #        if piece.x == self.x and piece.y == i:
+                                                                    #            self.moves.append((self.x, i))
+                                                                    #            end_loop = True
+                                                                    #else:
+                                                                    #    for piece in dark_pieces:
+                                                                    #        if piece.x == self.x and piece.y == i:
+                                                                    #            end_loop = True
+                                                                    #    for piece in light_pieces:
+                                                                    #        if piece.x == self.x and piece.y == i:
+                                                                    #            self.moves.append((self.x, i))
+                                                                    #            end_loop = True
+                                                                    #
+                                                                    #if not end_loop:
+                                                                    #    self.moves.append((self.x, i))
+
         # removing the moves that are out of the board
         for move in self.moves:
             if move[0] < 0 or move[0] > 7 or move[1] < 0 or move[1] > 7:
                 self.moves.remove(move)
-        # removing the tiles that are already by allied pieces
+        
+        # removing the coordinate of the piece itself
+        for move in self.moves:
+            if move[0] == self.x and move[1] == self.y:
+                self.moves.remove(move)
+
+        # removing the tiles that are already controled by allied pieces
         if self.color == 0:
             for piece in light_pieces:
                 for move in self.moves:
@@ -131,6 +212,8 @@ class Rook(Piece):
                 for move in self.moves:
                     if piece.x == move[0] and piece.y == move[1]:
                         self.moves.remove(move)
+
+        print(self.moves)
 
 # class for the knight
 class Knight(Piece):
@@ -197,6 +280,16 @@ class Bishop(Piece):
             self.moves.append((self.x+i, self.y-i))
         for i in range(8):
             self.moves.append((self.x-i, self.y-i))
+        # removing the moves that are out of the board
+        for move in self.moves:
+            if move[0] < 0 or move[0] > 7 or move[1] < 0 or move[1] > 7:
+                self.moves.remove(move)
+        # removing the tiles that are already by allied pieces
+        if self.color == 0:
+            for piece in light_pieces:
+                for move in self.moves:
+                    if piece.x == move[0] and piece.y == move[1]:
+                        self.moves.remove(move)
 # class for the queen
 class Queen(Piece):
     def __init__(self, x, y, color):
@@ -226,6 +319,16 @@ class Queen(Piece):
             self.moves.append((self.x+i, self.y-i))
         for i in range(8):
             self.moves.append((self.x-i, self.y-i))
+        # removing the moves that are out of the board
+        for move in self.moves:
+            if move[0] < 0 or move[0] > 7 or move[1] < 0 or move[1] > 7:
+                self.moves.remove(move)
+        # removing the tiles that are already by allied pieces
+        if self.color == 0:
+            for piece in light_pieces:
+                for move in self.moves:
+                    if piece.x == move[0] and piece.y == move[1]:
+                        self.moves.remove(move)
 # class for the king
 class King(Piece):
     def __init__(self, x, y, color):
@@ -251,7 +354,16 @@ class King(Piece):
         self.moves.append((self.x-1, self.y+1))
         self.moves.append((self.x+1, self.y-1))
         self.moves.append((self.x-1, self.y-1))
-
+        # removing the moves that are out of the board
+        for move in self.moves:
+            if move[0] < 0 or move[0] > 7 or move[1] < 0 or move[1] > 7:
+                self.moves.remove(move)
+        # removing the tiles that are already by allied pieces
+        if self.color == 0:
+            for piece in light_pieces:
+                for move in self.moves:
+                    if piece.x == move[0] and piece.y == move[1]:
+                        self.moves.remove(move)
 
 # Initialize the game
 pygame.init()
@@ -290,7 +402,7 @@ dark_king = pygame.image.load("dark_king.png")
 resized_light_king = pygame.transform.scale(light_king, (tile_size, tile_size))
 resized_dark_king = pygame.transform.scale(dark_king, (tile_size, tile_size))
 settings = pygame.image.load("settings.png")
-resized_settings = pygame.transform.scale(settings, (50, 50))
+resized_settings = pygame.transform.scale(settings, (tile_size, tile_size))
 
 # setting up font for the score
 font = pygame.font.Font(None, 36)
