@@ -1,9 +1,18 @@
 import pygame
 import time
 import threading
+import tkinter
 
     # functions
 
+# function for the settings window
+def settings_window():
+    # setting up the window
+    window = tkinter.Tk()
+    window.title("Settings")
+    window.geometry("300x200")
+    #window.iconbitmap("icon.ico")
+    # here will be settings for special moves and other stuff
 
 
 
@@ -46,14 +55,46 @@ class Pawn(Piece):
         else:
             self.image = resized_dark_pawn
     def draw(self):
-        screen.blit(self.image, (self.x*50, self.y*50))
-    # this is a very basic implementation of the possible moves, I will add more logic later
+        if self.state == "alive":
+            screen.blit(self.image, (self.x*50, self.y*50))
+    # this is a good enough implementation of the possible moves
     def possible_moves(self):
         self.moves = []
         if self.color == 0:
             self.moves.append((self.x, self.y+1))
         else:
             self.moves.append((self.x, self.y-1))
+        # removing the moves that are out of the board
+        for move in self.moves:
+            if move[0] < 0 or move[0] > 7 or move[1] < 0 or move[1] > 7:
+                self.moves.remove(move)
+        # removing the tile if its already occupied by allied piece or enemy piece
+        for piece in light_pieces:
+            for move in self.moves:
+                if piece.x == move[0] and piece.y == move[1]:
+                    self.moves.remove(move)
+        for piece in dark_pieces:
+            for move in self.moves:
+                if piece.x == move[0] and piece.y == move[1]:
+                    self.moves.remove(move)
+        # adding the moves for taking pieces
+        if self.color == 0:
+            # checking that there is some piece to takk
+            for piece in dark_pieces:
+                if piece.x == self.x+1 and piece.y == self.y+1:
+                    self.moves.append((self.x+1, self.y+1))
+            for piece in dark_pieces:
+                if piece.x == self.x-1 and piece.y == self.y+1:
+                    self.moves.append((self.x-1, self.y+1))
+        else:
+            # checking that there is some piece to take
+            for piece in light_pieces:
+                if piece.x == self.x+1 and piece.y == self.y-1:
+                    self.moves.append((self.x+1, self.y-1))
+            for piece in light_pieces:
+                if piece.x == self.x-1 and piece.y == self.y-1:
+                    self.moves.append((self.x-1, self.y-1))
+
 # class for the rook
 class Rook(Piece):
     def __init__(self, x, y, color):
@@ -66,14 +107,31 @@ class Rook(Piece):
         else:
             self.image = resized_dark_rook
     def draw(self):
-        screen.blit(self.image, (self.x*50, self.y*50))
-    # this is a very basic implementation of the possible moves, I will add more logic later
+        if self.state == "alive":
+            screen.blit(self.image, (self.x*50, self.y*50))
+    # this is a simple implementation of the possible moves, I will need to add more conditions to the possible moves later on, currently it does not account if there is a piece in the way
     def possible_moves(self):
         self.moves = []
         for i in range(8):
             self.moves.append((self.x, i))
         for i in range(8):
             self.moves.append((i, self.y))
+        # removing the moves that are out of the board
+        for move in self.moves:
+            if move[0] < 0 or move[0] > 7 or move[1] < 0 or move[1] > 7:
+                self.moves.remove(move)
+        # removing the tiles that are already by allied pieces
+        if self.color == 0:
+            for piece in light_pieces:
+                for move in self.moves:
+                    if piece.x == move[0] and piece.y == move[1]:
+                        self.moves.remove(move)
+        else:
+            for piece in dark_pieces:
+                for move in self.moves:
+                    if piece.x == move[0] and piece.y == move[1]:
+                        self.moves.remove(move)
+
 # class for the knight
 class Knight(Piece):
     def __init__(self, x, y, color):
@@ -86,8 +144,9 @@ class Knight(Piece):
         else:
             self.image = resized_dark_horse
     def draw(self):
-        screen.blit(self.image, (self.x*50, self.y*50))
-    # this is a very basic implementation of the possible moves, I will add more logic later
+        if self.state == "alive":
+            screen.blit(self.image, (self.x*50, self.y*50))
+    # this is a good enough implementation of the possible moves
     def possible_moves(self):
         self.moves = []
         self.moves.append((self.x+1, self.y+2))
@@ -98,6 +157,21 @@ class Knight(Piece):
         self.moves.append((self.x+2, self.y-1))
         self.moves.append((self.x-2, self.y+1))
         self.moves.append((self.x-2, self.y-1))
+        # removing the moves that are out of the board
+        for move in self.moves:
+            if move[0] < 0 or move[0] > 7 or move[1] < 0 or move[1] > 7:
+                self.moves.remove(move)
+        # removing the tiles that are already by allied pieces
+        if self.color == 0:
+            for piece in light_pieces:
+                for move in self.moves:
+                    if piece.x == move[0] and piece.y == move[1]:
+                        self.moves.remove(move)
+        else:
+            for piece in dark_pieces:
+                for move in self.moves:
+                    if piece.x == move[0] and piece.y == move[1]:
+                        self.moves.remove(move)
 # class for the bishop
 class Bishop(Piece):
     def __init__(self, x, y, color):
@@ -110,7 +184,8 @@ class Bishop(Piece):
         else:
             self.image = resized_dark_bishop
     def draw(self):
-        screen.blit(self.image, (self.x*50, self.y*50))
+        if self.state == "alive":
+            screen.blit(self.image, (self.x*50, self.y*50))
     # this is a very basic implementation of the possible moves, I will add more logic later
     def possible_moves(self):
         self.moves = []
@@ -134,7 +209,8 @@ class Queen(Piece):
         else:
             self.image = resized_dark_queen
     def draw(self):
-        screen.blit(self.image, (self.x*50, self.y*50))
+        if self.state == "alive":
+            screen.blit(self.image, (self.x*50, self.y*50))
     # this is a very basic implementation of the possible moves, I will add more logic later
     def possible_moves(self):
         self.moves = []
@@ -162,7 +238,8 @@ class King(Piece):
         else:
             self.image = resized_dark_king
     def draw(self):
-        screen.blit(self.image, (self.x*50, self.y*50))
+        if self.state == "alive":
+            screen.blit(self.image, (self.x*50, self.y*50))
     # this is a very basic implementation of the possible moves, I will add more logic later        
     def possible_moves(self):
         self.moves = []
@@ -212,6 +289,8 @@ light_king = pygame.image.load("light_king.png")
 dark_king = pygame.image.load("dark_king.png")
 resized_light_king = pygame.transform.scale(light_king, (tile_size, tile_size))
 resized_dark_king = pygame.transform.scale(dark_king, (tile_size, tile_size))
+settings = pygame.image.load("settings.png")
+resized_settings = pygame.transform.scale(settings, (50, 50))
 
 # setting up font for the score
 font = pygame.font.Font(None, 36)
@@ -299,19 +378,26 @@ while running:
     
     # drawing the score
     text = font.render(str(score1) + " x " +str(score2), True, (0, 0, 0))
-    screen.blit(text, (450, 50))
+    screen.blit(text, (500- text.get_width()/2, 50))
 
     # drawing a label displaying the current player
     text = font.render(str(current_player) + "'s turn", True, (0, 0, 0))
-    screen.blit(text, (450, 100))
+    screen.blit(text, (500- text.get_width()/2, 100))
+
+    # drawing the settings button
+    screen.blit(resized_settings, (500 - resized_settings.get_width()/2, 150))
     
     # checking for events 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            # getting the coordinates of the click, and determining the tile that was clicked
+            # checking if the settings button was clicked
             x, y = pygame.mouse.get_pos()
+            if x > 500 - resized_settings.get_width()/2 and x < 500 + resized_settings.get_width()/2 and y > 150 and y < 150 + resized_settings.get_height():
+                settings_window()
+
+            # determining the tile that was clicked, if it was clicked
             x = x // 50
             y = y // 50
 
@@ -328,69 +414,61 @@ while running:
             if current_player == "light":
                 for piece in light_pieces:
                     if piece.x == x and piece.y == y:
-                        piece_selected = True
-                        # getting the possible moves of the piece
-                        piece.possible_moves()
-                        # marking the possible moves as 3
-                        for move in piece.moves:
-                            for tile in board_tiles:
-                                if tile.x == move[0] and tile.y == move[1]:
-                                    tile_selected_original_color.append(tile.color)
-                                    tile.color = 3
-                                    available_moves.append((tile.x, tile.y))
-                                    tiles_selected.append((tile.x, tile.y))
+                        if piece.state == "alive":
+                            piece_selected = True
+                            selected = piece
+                            # getting the possible moves of the piece
+                            piece.possible_moves()
+                            # marking the possible moves as 3
+                            for move in piece.moves:
+                                for tile in board_tiles:
+                                    if tile.x == move[0] and tile.y == move[1]:
+                                        tile_selected_original_color.append(tile.color)
+                                        tile.color = 3
+                                        available_moves.append((tile.x, tile.y))
+                                        tiles_selected.append((tile.x, tile.y))
             else:
                 for piece in dark_pieces:
                     if piece.x == x and piece.y == y:
-                        piece_selected = True
-                        # getting the possible moves of the piece
-                        piece.possible_moves()
-                        # marking the possible moves as 3
-                        for move in piece.moves:
-                            for tile in board_tiles:
-                                if tile.x == move[0] and tile.y == move[1]:
-                                    tile_selected_original_color.append(tile.color)
-                                    tile.color = 3
-                                    available_moves.append((tile.x, tile.y))
-                                    tiles_selected.append((tile.x, tile.y))
-            #print(tile_selected_original_color)
+                        if piece.state == "alive":
+                            piece_selected = True
+                            selected = piece
+                            # getting the possible moves of the piece
+                            piece.possible_moves()
+                            # marking the possible moves as 3
+                            for move in piece.moves:
+                                for tile in board_tiles:
+                                    if tile.x == move[0] and tile.y == move[1]:
+                                        tile_selected_original_color.append(tile.color)
+                                        tile.color = 3
+                                        available_moves.append((tile.x, tile.y))
+                                        tiles_selected.append((tile.x, tile.y))
 
             if not piece_selected:
-                # reseting the color of the empty tile
+                # reseting the colors
                 for tile in board_tiles:
                     if tile.color == 2 or tile.color == 3:
                         for i in range(len(tiles_selected)):
                             if tile.x == tiles_selected[i][0] and tile.y == tiles_selected[i][1]:
                                 tile.color = tile_selected_original_color[i]
-                        #tile_selected_original_color.clear()
 
             # checking if the player clicked on a possible move
             for move in available_moves:
                 if move[0] == x and move[1] == y:
-                    # recoloring to original colors
-                    if current_player == "light":
-                        for piece in light_pieces:
-                            if piece.x == x and piece.y == y:
-                                piece.x = x
-                                piece.y = y
-                                #for tile in board_tiles:
-                                    #if tile.color == 2 or tile.color == 3:
-                                        #print(tile_selected_original_color)
-                                        #tile.color = tile_selected_original_color[0]
-                                        #tile_selected_original_color.remove(tile_selected_original_color[0])
-                                        #tile_selected_original_color.clear()
-                    else:
-                        print("dark")
-                        for piece in dark_pieces:
-                            if piece.x == x and piece.y == y:
-                                print("dark2")
-                                piece.x = x
-                                piece.y = y
-                                #for tile in board_tiles:
-                                #    if tile.color == 2 or tile.color == 3:
-                                  #      print(tile_selected_original_color)
-                                 #       tile.color = tile_selected_original_color[0]
-                                #        tile_selected_original_color.remove(tile_selected_original_color[0])
+
+                    # if there is a piece in the tile for the move, it will be taken and marked as dead
+                    for piece in light_pieces:
+                        if piece.x == x and piece.y == y:
+                            if piece.state == "alive":
+                                piece.state = "dead"
+                    for piece in dark_pieces:
+                        if piece.x == x and piece.y == y:
+                            if piece.state == "alive":
+                                piece.state = "dead"
+
+                    # moving the piece to the new tile
+                    selected.x = x
+                    selected.y = y
 
                     # changing the player
                     if current_player == "light":
@@ -401,7 +479,7 @@ while running:
                     # clearing the available moves
                     available_moves.clear()
 
-                    # clearing the original color of the tiles
+                    # setting the tgiles to their original color
                     if len(tile_selected_original_color) > 0:
                         for tile in board_tiles:
                             if tile.color == 2 or tile.color == 3:
@@ -409,13 +487,12 @@ while running:
                                 tile_selected_original_color.remove(tile_selected_original_color[0])
                         tile_selected_original_color.clear()
                         tiles_selected.clear()
+
                     # clearing the possible moves of the pieces
                     for piece in light_pieces:
                         piece.moves = []
                     for piece in dark_pieces:
                         piece.moves = []
-                
-    #print(tile_selected_original_color)
     
     # updating the screen
     clock.tick(60)
