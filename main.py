@@ -5,15 +5,57 @@ import tkinter
 
     # functions
 
+# function for a timer, that will later be used for timed rounds
+def timer():
+    global running
+    while running:
+        pass
+    
+# function to reset the game
+def reset_game():
+    pass
+
+# function for applying settings
+def apply_settings(window):
+    # closing window
+    window.destroy()
+       # in the future this function will apply settings
+
 # function for the settings window
 def settings_window():
     # setting up the window
     window = tkinter.Tk()
     window.title("Settings")
     window.geometry("300x200")
-    #window.iconbitmap("icon.ico")
-    # here will be settings for special moves and other stuff
+    window.iconbitmap("settings_icon.ico")
+    window.resizable(False, False)
+    # setting up the main label
+    label = tkinter.Label(window, text="Settings", font=("Arial", 24))
+    label.pack()
+    # setting frame for the settings
+    frame = tkinter.Frame(window)
+    frame.pack()
+    # setting up a label for special moves
+    label = tkinter.Label(frame, text="Special moves", font=("Arial", 16))
+    label.grid(row=0, column=0)
+    # setting up a checkbox for special moves
+    var = tkinter.IntVar()
+    checkbox = tkinter.Checkbutton(frame, variable=var)
+    checkbox.grid(row=0, column=1)
+    # setting up a label for resizability of the window
+    label = tkinter.Label(frame, text="Resizability", font=("Arial", 16))
+    label.grid(row=1, column=0)
+    # setting up a checkbox for resizability
+    var1 = tkinter.IntVar()
+    checkbox = tkinter.Checkbutton(frame, variable=var1)
+    checkbox.grid(row=1, column=1)
 
+
+    # creating apply button
+    apply_button = tkinter.Button(window, text="Apply", font=("Arial", 16), command=lambda:apply_settings(window))
+    apply_button.pack(side="bottom")
+
+    window.mainloop()
 
 
     # classes
@@ -109,35 +151,69 @@ class Rook(Piece):
     def draw(self):
         if self.state == "alive":
             screen.blit(self.image, (self.x*50, self.y*50))
-    # this is a simple implementation of the possible moves, I will need to add more conditions to the possible moves later on, currently it does not account if there is a piece in the way
+    # finaly a good implementation of the possible moves for the rook
     def possible_moves(self):
         self.moves = []
-        print(self.x, self.y)
 
-        # columns
+        # getting the coordinates of the rook
+        x = self.x 
+        y = self.y
+
+        # row
+        # getting all the moves from x to 0
         temp = True
-        for i in range(self.y):
-            self.moves.append((self.x, i))
-            
-        temp1 = True
-        for i in range(8 - self.y):
-            # checking if there is a piece in the way, if yes then the code will break
+        while x > 0 and temp:
+            self.moves.append((x-1, y))
+            # if there is a piece than the rook can't go further so the loop will stop
             for piece in light_pieces:
-                if piece.x == self.x and piece.y == self.y + i:
+                if piece.x == x-1 and piece.y == y and piece.state == "alive":
+                    temp = False
+            for piece in dark_pieces:
+                if piece.x == x-1 and piece.y == y and piece.state == "alive":
+                    temp = False
+            x -= 1
+        # getting all the moves from x to 7
+        x = self.x
+        temp1 = True
+        while x < 7 and temp1:
+            self.moves.append((x+1, y))
+            # if there is a piece than the rook can't go further so the loop will stop
+            for piece in light_pieces:
+                if piece.x == x+1 and piece.y == y and piece.state == "alive":
                     temp1 = False
             for piece in dark_pieces:
-                if piece.x == self.x and piece.y == self.y + i:
+                if piece.x == x+1 and piece.y == y and piece.state == "alive":
                     temp1 = False
-            if temp1:
-                self.moves.append((self.x, self.y +i))
+            x += 1
 
-        # rows
-        for i in range(self.x):
-            self.moves.append((i, self.y))
-        
-        for i in range(8 - self.x):
-            self.moves.append((self.x+i, self.y))
+        # column
+        # getting all the moves from y to 0
+        x = self.x
+        y = self.y
+        temp2 = True
+        while y > 0 and temp2:
+            self.moves.append((x, y-1))
+            for piece in light_pieces:
+                if piece.x == x and piece.y == y-1 and piece.state == "alive":
+                    temp2 = False
+            for piece in dark_pieces:
+                if piece.x == x and piece.y == y-1 and piece.state == "alive":
+                    temp2 = False
+            y -= 1
+        # getting all the moves from y to 7
+        y = self.y
+        temp3 = True
+        while y < 7 and temp3:
+            self.moves.append((x, y+1))
+            for piece in light_pieces:
+                if piece.x == x and piece.y == y+1 and piece.state == "alive":
+                    temp3 = False
+            for piece in dark_pieces:
+                if piece.x == x and piece.y == y+1 and piece.state == "alive":
+                    temp3 = False
+            y += 1
 
+                # these conditions are now easily replacable, but I will leave them here just for now
         # removing the moves that are out of the board
         for move in self.moves:
             if move[0] < 0 or move[0] > 8 or move[1] < 0 or move[1] > 8:
@@ -217,14 +293,66 @@ class Bishop(Piece):
     # this is a very basic implementation of the possible moves, I will add more logic later
     def possible_moves(self):
         self.moves = []
-        for i in range(8):
-            self.moves.append((self.x+i, self.y+i))
-        for i in range(8):
-            self.moves.append((self.x-i, self.y+i))
-        for i in range(8):
-            self.moves.append((self.x+i, self.y-i))
-        for i in range(8):
-            self.moves.append((self.x-i, self.y-i))
+       # getting the coordinates of the bishop
+        x = self.x
+        y = self.y
+
+        # getting all the moves towards top left corner, until one of the values is below 0
+        temp = True
+        while x > 0 and y > 0 and temp:
+            self.moves.append((x-1, y-1))
+            for piece in light_pieces:
+                if piece.x == x-1 and piece.y == y-1 and piece.state == "alive":
+                    temp = False
+            for piece in dark_pieces:
+                if piece.x == x-1 and piece.y == y-1 and piece.state == "alive":
+                    temp = False
+            x -= 1
+            y -= 1
+        # getting all the moves towards top right corner, until one of the values is below 0
+        x = self.x
+        y = self.y
+        temp1 = True
+        while x < 7 and y > 0 and temp1:
+            self.moves.append((x+1, y-1))
+            for piece in light_pieces:
+                if piece.x == x+1 and piece.y == y-1 and piece.state == "alive":
+                    temp1 = False
+            for piece in dark_pieces:
+                if piece.x == x+1 and piece.y == y-1 and piece.state == "alive":
+                    temp1 = False
+            x += 1
+            y -= 1
+        # getting all the moves towards bottom left corner, until one of the values is below 0
+        x = self.x
+        y = self.y
+        temp2 = True
+        while x > 0 and y < 7 and temp2:
+            self.moves.append((x-1, y+1))
+            for piece in light_pieces:
+                if piece.x == x-1 and piece.y == y+1 and piece.state == "alive":
+                    temp2 = False
+            for piece in dark_pieces:
+                if piece.x == x-1 and piece.y == y+1 and piece.state == "alive":
+                    temp2 = False
+            x -= 1
+            y += 1
+        # getting all the moves towards bottom right corner, until one of the values is below 0
+        x = self.x
+        y = self.y
+        temp3 = True
+        while x < 7 and y < 7 and temp3:
+            self.moves.append((x+1, y+1))
+            for piece in light_pieces:
+                if piece.x == x+1 and piece.y == y+1 and piece.state == "alive":
+                    temp3 = False
+            for piece in dark_pieces:
+                if piece.x == x+1 and piece.y == y+1 and piece.state == "alive":
+                    temp3 = False
+            x += 1
+            y += 1
+
+            # these are replacable
         # removing the moves that are out of the board
         for move in self.moves:
             if move[0] < 0 or move[0] > 7 or move[1] < 0 or move[1] > 7:
@@ -235,6 +363,7 @@ class Bishop(Piece):
                 for move in self.moves:
                     if piece.x == move[0] and piece.y == move[1]:
                         self.moves.remove(move)
+
 # class for the queen
 class Queen(Piece):
     def __init__(self, x, y, color):
@@ -249,31 +378,141 @@ class Queen(Piece):
     def draw(self):
         if self.state == "alive":
             screen.blit(self.image, (self.x*50, self.y*50))
-    # this is a very basic implementation of the possible moves, I will add more logic later
+
+    # queen uses a combination of rook and bishop moves, so I just copied the code from those classes
     def possible_moves(self):
         self.moves = []
-        for i in range(8):
-            self.moves.append((self.x, i))
-        for i in range(8):
-            self.moves.append((i, self.y))
-        for i in range(8):
-            self.moves.append((self.x+i, self.y+i))
-        for i in range(8):
-            self.moves.append((self.x-i, self.y+i))
-        for i in range(8):
-            self.moves.append((self.x+i, self.y-i))
-        for i in range(8):
-            self.moves.append((self.x-i, self.y-i))
+        # getting the coordinates of the queen
+        x = self.x
+        y = self.y
+
+        # getting all the moves towards top left corner, until one of the values is below 0
+        temp = True
+        while x > 0 and y > 0 and temp:
+            self.moves.append((x-1, y-1))
+            for piece in light_pieces:
+                if piece.x == x-1 and piece.y == y-1 and piece.state == "alive":
+                    temp = False
+            for piece in dark_pieces:
+                if piece.x == x-1 and piece.y == y-1 and piece.state == "alive":
+                    temp = False
+            x -= 1
+            y -= 1
+        # getting all the moves towards top right corner, until one of the values is below 0
+        x = self.x
+        y = self.y
+        temp1 = True
+        while x < 7 and y > 0 and temp1:
+            self.moves.append((x+1, y-1))
+            for piece in light_pieces:
+                if piece.x == x+1 and piece.y == y-1 and piece.state == "alive":
+                    temp1 = False
+            for piece in dark_pieces:
+                if piece.x == x+1 and piece.y == y-1 and piece.state == "alive":
+                    temp1 = False
+            x += 1
+            y -= 1
+        # getting all the moves towards bottom left corner, until one of the values is below 0
+        x = self.x
+        y = self.y
+        temp2 = True
+        while x > 0 and y < 7 and temp2:
+            self.moves.append((x-1, y+1))
+            for piece in light_pieces:
+                if piece.x == x-1 and piece.y == y+1 and piece.state == "alive":
+                    temp2 = False
+            for piece in dark_pieces:
+                if piece.x == x-1 and piece.y == y+1 and piece.state == "alive":
+                    temp2 = False
+            x -= 1
+            y += 1
+        # getting all the moves towards bottom right corner, until one of the values is below 0
+        x = self.x
+        y = self.y
+        temp3 = True
+        while x < 7 and y < 7 and temp3:
+            self.moves.append((x+1, y+1))
+            for piece in light_pieces:
+                if piece.x == x+1 and piece.y == y+1 and piece.state == "alive":
+                    temp3 = False
+            for piece in dark_pieces:
+                if piece.x == x+1 and piece.y == y+1 and piece.state == "alive":
+                    temp3 = False
+            x += 1
+            y += 1
+
+        # row and column system from the rook class
+        # getting all the moves from x to 0
+        x = self.x
+        y = self.y
+        temp4 = True
+        while x > 0 and temp4:
+            self.moves.append((x-1, y))
+            # if there is a piece than the queen can't go further so the loop will stop
+            for piece in light_pieces:
+                if piece.x == x-1 and piece.y == y and piece.state == "alive":
+                    temp4 = False
+            for piece in dark_pieces:
+                if piece.x == x-1 and piece.y == y and piece.state == "alive":
+                    temp4 = False
+            x -= 1
+        # getting all the moves from x to 7
+        x = self.x
+        temp5 = True
+        while x < 7 and temp5:
+            self.moves.append((x+1, y))
+            # if there is a piece than the queen can't go further so the loop will stop
+            for piece in light_pieces:
+                if piece.x == x+1 and piece.y == y and piece.state == "alive":
+                    temp5 = False
+            for piece in dark_pieces:
+                if piece.x == x+1 and piece.y == y and piece.state == "alive":
+                    temp5 = False
+            x += 1
+
+        # getting all the moves from y to 0
+        x = self.x
+        y = self.y
+        temp6 = True
+        while y > 0 and temp6:
+            self.moves.append((x, y-1))
+            for piece in light_pieces:
+                if piece.x == x and piece.y == y-1 and piece.state == "alive":
+                    temp6 = False
+            for piece in dark_pieces:
+                if piece.x == x and piece.y == y-1 and piece.state == "alive":
+                    temp6 = False
+            y -= 1
+        # getting all the moves from y to 7
+        y = self.y
+        temp7 = True
+        while y < 7 and temp7:
+            self.moves.append((x, y+1))
+            for piece in light_pieces:
+                if piece.x == x and piece.y == y+1 and piece.state == "alive":
+                    temp7 = False
+            for piece in dark_pieces:
+                if piece.x == x and piece.y == y+1 and piece.state == "alive":
+                    temp7 = False
+            y += 1
+        
         # removing the moves that are out of the board
         for move in self.moves:
             if move[0] < 0 or move[0] > 7 or move[1] < 0 or move[1] > 7:
                 self.moves.remove(move)
+                
         # removing the tiles that are already by allied pieces
         if self.color == 0:
             for piece in light_pieces:
                 for move in self.moves:
                     if piece.x == move[0] and piece.y == move[1]:
                         self.moves.remove(move)
+        else:
+            for piece in dark_pieces:
+                for move in self.moves:
+                    if piece.x == move[0] and piece.y == move[1]:
+                        self.moves.remove(move)
+
 # class for the king
 class King(Piece):
     def __init__(self, x, y, color):
@@ -309,6 +548,11 @@ class King(Piece):
                 for move in self.moves:
                     if piece.x == move[0] and piece.y == move[1]:
                         self.moves.remove(move)
+        else:
+            for piece in dark_pieces:
+                for move in self.moves:
+                    if piece.x == move[0] and piece.y == move[1]:
+                        self.moves.remove(move)
 
 # Initialize the game
 pygame.init()
@@ -321,7 +565,7 @@ clock = pygame.time.Clock()
 # setting the tile size, this will be mainly used later in the development for resizability
 tile_size = 50
 
-# loading the images
+# loading the images and resizing them all
 light_pawn = pygame.image.load("light_pawn.png")
 dark_pawn = pygame.image.load("dark_pawn.png")
 resized_light_pawn = pygame.transform.scale(light_pawn, (tile_size, tile_size))
@@ -375,6 +619,7 @@ light_pieces = []
 score1 = 0
 dark_pieces = []
 score2 = 0
+
 # seting up player turns variables
 players = ["light", "dark"]
 current_player = players[0]
