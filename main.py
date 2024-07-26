@@ -112,88 +112,35 @@ class Rook(Piece):
     # this is a simple implementation of the possible moves, I will need to add more conditions to the possible moves later on, currently it does not account if there is a piece in the way
     def possible_moves(self):
         self.moves = []
-        end_loop = False
-        for i in range(8):
-            if self.color == 0:
-                for piece in dark_pieces:
-                    if piece.x == i and piece.y == self.y:
-                        end_loop = True
-                for piece in light_pieces:
-                    if piece.x == self.x and piece.y == self.y:
-                        pass
-                    elif piece.x == i and piece.y == self.y and not end_loop:
-                        end_loop = True
-                if not end_loop:
-                    self.moves.append((i, self.y))
-            else:
-                for piece in light_pieces:
-                    if piece.x == i and piece.y == self.y:
-                        end_loop = True
-                for piece in dark_pieces:
-                    if piece.x == self.x and piece.y == self.y:
-                        pass
-                    elif piece.x == i and piece.y == self.y and not end_loop:
-                        end_loop = True
-            
-                if not end_loop:
-                    self.moves.append((i, self.y))
-        print(self.moves)
+        print(self.x, self.y)
 
-        end_loop = False
-
-        for i in range(8):
-            if self.color == 0:
-                for piece in dark_pieces:
-                    if piece.x == self.x and piece.y == i:
-                        end_loop = True
-                for piece in light_pieces:
-                    if piece.x == self.x and piece.y == self.y:
-                        pass
-                    elif piece.x == self.x and piece.y == i and not end_loop:
-                        end_loop = True
-                if not end_loop:
-                    self.moves.append((self.x, i))
-            else:
-                for piece in light_pieces:
-                    if piece.x == self.x and piece.y == i:
-                        end_loop = True
-                for piece in dark_pieces:
-                    if piece.x == self.x and piece.y == self.y:
-                        pass
-                    elif piece.x == self.x and piece.y == i and not end_loop:
-                        end_loop = True
+        # columns
+        temp = True
+        for i in range(self.y):
+            self.moves.append((self.x, i))
             
-                if not end_loop:
-                    self.moves.append((self.x, i))
-        print(self.moves)
-            
+        temp1 = True
+        for i in range(8 - self.y):
+            # checking if there is a piece in the way, if yes then the code will break
+            for piece in light_pieces:
+                if piece.x == self.x and piece.y == self.y + i:
+                    temp1 = False
+            for piece in dark_pieces:
+                if piece.x == self.x and piece.y == self.y + i:
+                    temp1 = False
+            if temp1:
+                self.moves.append((self.x, self.y +i))
 
-                                                                            # failed attempt to add more conditions to the possible moves
-                                                                    # conditions for each coordinate, if there is a piece in the way no more coordinates will be added
-                                                                    # and if there is an alied piece in the way, the coordinates after that piece will not be added
-                                                                    #if self.color == 0:
-                                                                    #    for piece in light_pieces:
-                                                                    #        if piece.x == self.x and piece.y == i:
-                                                                    #            end_loop = True
-                                                                    #    for piece in dark_pieces:
-                                                                    #        if piece.x == self.x and piece.y == i:
-                                                                    #            self.moves.append((self.x, i))
-                                                                    #            end_loop = True
-                                                                    #else:
-                                                                    #    for piece in dark_pieces:
-                                                                    #        if piece.x == self.x and piece.y == i:
-                                                                    #            end_loop = True
-                                                                    #    for piece in light_pieces:
-                                                                    #        if piece.x == self.x and piece.y == i:
-                                                                    #            self.moves.append((self.x, i))
-                                                                    #            end_loop = True
-                                                                    #
-                                                                    #if not end_loop:
-                                                                    #    self.moves.append((self.x, i))
+        # rows
+        for i in range(self.x):
+            self.moves.append((i, self.y))
+        
+        for i in range(8 - self.x):
+            self.moves.append((self.x+i, self.y))
 
         # removing the moves that are out of the board
         for move in self.moves:
-            if move[0] < 0 or move[0] > 7 or move[1] < 0 or move[1] > 7:
+            if move[0] < 0 or move[0] > 8 or move[1] < 0 or move[1] > 8:
                 self.moves.remove(move)
         
         # removing the coordinate of the piece itself
@@ -212,8 +159,6 @@ class Rook(Piece):
                 for move in self.moves:
                     if piece.x == move[0] and piece.y == move[1]:
                         self.moves.remove(move)
-
-        print(self.moves)
 
 # class for the knight
 class Knight(Piece):
