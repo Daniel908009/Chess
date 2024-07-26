@@ -4,25 +4,6 @@ import threading
 
     # functions
 
-    # failed attempt at threading, it seems like pygame doesnt like when events are handled in a different thread
-# function for selecting a piece
-#def selecting():
-#    global running, light_pieces, dark_pieces, board_tiles, clock
-#    while running:
-#        for event in pygame.event.get():
-#            if event.type == pygame.MOUSEBUTTONDOWN:
-#                print("clicked")
-#                x, y = pygame.mouse.get_pos()
-#                # finding the tile that was clicked
-#                x = x // 50
-#                y = y // 50
-#                # finding the piece that was clicked
-#
-#
-#                print(x, y)
-#            if event.type == pygame.QUIT:
-#                running = False
-#        clock.tick(60)
 
 
 
@@ -69,7 +50,10 @@ class Pawn(Piece):
     # this is a very basic implementation of the possible moves, I will add more logic later
     def possible_moves(self):
         self.moves = []
-        self.moves.append((self.x, self.y+1))
+        if self.color == 0:
+            self.moves.append((self.x, self.y+1))
+        else:
+            self.moves.append((self.x, self.y-1))
 # class for the rook
 class Rook(Piece):
     def __init__(self, x, y, color):
@@ -248,13 +232,18 @@ for i in range(8):
         coords.append((i*tile_size, j*tile_size))
 
 # more random variables that will be used throughout the code
-tile_selected_original_color = None
+tile_selected_original_color = []
 
 # setting up list of pieces for both players and the scores
 light_pieces = []
 score1 = 0
 dark_pieces = []
 score2 = 0
+# seting up player turns variables
+players = ["light", "dark"]
+current_player = players[0]
+available_moves = []
+tiles_selected = []
 
     # setting up the pieces
 # setting up the pawns
@@ -280,16 +269,9 @@ dark_pieces.append(Queen(3, 7, 1))
 light_pieces.append(King(4, 0, 0))
 dark_pieces.append(King(4, 7, 1))
 
-# setting up a thread for the selecting
-#select_thread = threading.Thread(target=selecting)
-
 # main loop
 running = True
 while running:
-
-    # starting the thread for selecting
-    #if not select_thread.is_alive():
-        #select_thread.start()
 
     # getting the new score by counting the value of the living pieces
     score1 = 0
@@ -318,6 +300,10 @@ while running:
     # drawing the score
     text = font.render(str(score1) + " x " +str(score2), True, (0, 0, 0))
     screen.blit(text, (450, 50))
+
+    # drawing a label displaying the current player
+    text = font.render(str(current_player) + "'s turn", True, (0, 0, 0))
+    screen.blit(text, (450, 100))
     
     # checking for events 
     for event in pygame.event.get():
@@ -326,36 +312,111 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             # getting the coordinates of the click, and determining the tile that was clicked
             x, y = pygame.mouse.get_pos()
-            print(x, y)
             x = x // 50
             y = y // 50
-            print(x, y)
+
             # finding the tile that was clicked and marking it as 2
-            for tile in board_tiles:
-                if tile.x == x and tile.y == y:
-                    tile_selected_original_color = tile.color
-                    tile.color = 2
+            if len(tile_selected_original_color) == 0:
+                for tile in board_tiles:
+                    if tile.x == x and tile.y == y:
+                        tile_selected_original_color.append(tile.color)
+                        tile.color = 2
+                        tiles_selected.append((tile.x, tile.y))
+
             # finding the piece that was clicked
-                # eventually I will make this player based, so each player can only move their pieces
             piece_selected = False
-            for piece in light_pieces:
-                if piece.x == x and piece.y == y:
-                    print(piece.type)
-                    piece_selected = True
-                    # here I will make logic for displaying the possible moves
-            for piece in dark_pieces:
-                if piece.x == x and piece.y == y:
-                    print(piece.type)
-                    piece_selected = True
+            if current_player == "light":
+                for piece in light_pieces:
+                    if piece.x == x and piece.y == y:
+                        piece_selected = True
+                        # getting the possible moves of the piece
+                        piece.possible_moves()
+                        # marking the possible moves as 3
+                        for move in piece.moves:
+                            for tile in board_tiles:
+                                if tile.x == move[0] and tile.y == move[1]:
+                                    tile_selected_original_color.append(tile.color)
+                                    tile.color = 3
+                                    available_moves.append((tile.x, tile.y))
+                                    tiles_selected.append((tile.x, tile.y))
+            else:
+                for piece in dark_pieces:
+                    if piece.x == x and piece.y == y:
+                        piece_selected = True
+                        # getting the possible moves of the piece
+                        piece.possible_moves()
+                        # marking the possible moves as 3
+                        for move in piece.moves:
+                            for tile in board_tiles:
+                                if tile.x == move[0] and tile.y == move[1]:
+                                    tile_selected_original_color.append(tile.color)
+                                    tile.color = 3
+                                    available_moves.append((tile.x, tile.y))
+                                    tiles_selected.append((tile.x, tile.y))
+            #print(tile_selected_original_color)
+
             if not piece_selected:
                 # reseting the color of the empty tile
                 for tile in board_tiles:
-                    if tile.color == 2:
-                        tile.color = tile_selected_original_color
-                        tile_selected_original_color = None
+                    if tile.color == 2 or tile.color == 3:
+                        for i in range(len(tiles_selected)):
+                            if tile.x == tiles_selected[i][0] and tile.y == tiles_selected[i][1]:
+                                tile.color = tile_selected_original_color[i]
+                        #tile_selected_original_color.clear()
 
-                    # here I will make logic for displaying the possible moves
+            # checking if the player clicked on a possible move
+            for move in available_moves:
+                if move[0] == x and move[1] == y:
+                    # recoloring to original colors
+                    if current_player == "light":
+                        for piece in light_pieces:
+                            if piece.x == x and piece.y == y:
+                                piece.x = x
+                                piece.y = y
+                                #for tile in board_tiles:
+                                    #if tile.color == 2 or tile.color == 3:
+                                        #print(tile_selected_original_color)
+                                        #tile.color = tile_selected_original_color[0]
+                                        #tile_selected_original_color.remove(tile_selected_original_color[0])
+                                        #tile_selected_original_color.clear()
+                    else:
+                        print("dark")
+                        for piece in dark_pieces:
+                            if piece.x == x and piece.y == y:
+                                print("dark2")
+                                piece.x = x
+                                piece.y = y
+                                #for tile in board_tiles:
+                                #    if tile.color == 2 or tile.color == 3:
+                                  #      print(tile_selected_original_color)
+                                 #       tile.color = tile_selected_original_color[0]
+                                #        tile_selected_original_color.remove(tile_selected_original_color[0])
 
+                    # changing the player
+                    if current_player == "light":
+                        current_player = players[1]
+                    else:
+                        current_player = players[0]
+
+                    # clearing the available moves
+                    available_moves.clear()
+
+                    # clearing the original color of the tiles
+                    if len(tile_selected_original_color) > 0:
+                        for tile in board_tiles:
+                            if tile.color == 2 or tile.color == 3:
+                                tile.color = tile_selected_original_color[0]
+                                tile_selected_original_color.remove(tile_selected_original_color[0])
+                        tile_selected_original_color.clear()
+                        tiles_selected.clear()
+                    # clearing the possible moves of the pieces
+                    for piece in light_pieces:
+                        piece.moves = []
+                    for piece in dark_pieces:
+                        piece.moves = []
+                
+    #print(tile_selected_original_color)
+    
     # updating the screen
     clock.tick(60)
     pygame.display.update()
