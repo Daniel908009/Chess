@@ -30,6 +30,21 @@ def reset_game():
     # for now this function will delete all the pieces and set them up again
     light_pieces.clear()
     dark_pieces.clear()
+
+    # remaking all the tiles, this is done because sometimes the tiles can bug out and change their color to the wrong one(white to black and vice versa)
+    global board_tiles
+    board_tiles.clear()
+
+    for i in range(8):
+        for j in range(8):
+            if (i+j) % 2 == 0:
+                board_tiles.append(Board_tile(i, j, 0))
+            else:
+                board_tiles.append(Board_tile(i, j, 1))
+
+    # reseting cursor
+    global custom_cursor
+    custom_cursor = False
     
     # setting up the pieces again
     # setting up the pawns
@@ -135,13 +150,17 @@ def settings_window():
     label = tkinter.Label(frame, text="Minutes:", font=("Arial", 16))
     label.grid(row=4, column=0)
     # creating entry for the minutes setting
-    entry = tkinter.Entry(frame, font=("Arial", 16))
+    e1 = tkinter.StringVar()
+    e1.set(str(move_time[0]))
+    entry = tkinter.Entry(frame, font=("Arial", 16), textvariable=e1)
     entry.grid(row=4, column=1)
     # creating a label for the seconds setting
     label = tkinter.Label(frame, text="Seconds:", font=("Arial", 16))
     label.grid(row=5, column=0)
     # creating entry for the seconds setting
-    entry2 = tkinter.Entry(frame, font=("Arial", 16))
+    e2 = tkinter.StringVar()
+    e2.set(str(move_time[1]))
+    entry2 = tkinter.Entry(frame, font=("Arial", 16), textvariable=e2)
     entry2.grid(row=5, column=1)
 
     # creating apply button
@@ -650,7 +669,7 @@ class King(Piece):
 # Initialize the game
 pygame.init()
 # setting up the screen
-screen = pygame.display.set_mode((600, 400))
+screen = pygame.display.set_mode((600, 400), pygame.RESIZABLE)
 pygame.display.set_caption("Chess")
 pygame.display.set_icon(pygame.image.load("icon.png"))
 clock = pygame.time.Clock()
@@ -687,7 +706,32 @@ settings = pygame.image.load("settings.png")
 resized_settings = pygame.transform.scale(settings, (tile_size, tile_size))
 
 # custom cursor images
-# later I will add multiple images for the cursor, so that it looks like the piece is selected
+cursor = None
+# images for the cursor
+white_pawn = pygame.image.load("white_pawn.png")
+resized_white_pawn = pygame.transform.scale(white_pawn, (tile_size//2, tile_size//2))
+black_pawn = pygame.image.load("black_pawn.png")
+resized_black_pawn = pygame.transform.scale(black_pawn, (tile_size//2, tile_size//2))
+white_bishop = pygame.image.load("white_bishop.png")
+resized_white_bishop = pygame.transform.scale(white_bishop, (tile_size//2, tile_size//2))
+black_bishop = pygame.image.load("black_bishop.png")
+resized_black_bishop = pygame.transform.scale(black_bishop, (tile_size//2, tile_size//2))
+white_rook = pygame.image.load("white_rook.png")
+resized_white_rook = pygame.transform.scale(white_rook, (tile_size//2, tile_size//2))
+black_rook = pygame.image.load("black_rook.png")
+resized_black_rook = pygame.transform.scale(black_rook, (tile_size//2, tile_size//2))
+white_horse = pygame.image.load("white_horse.png")
+resized_white_horse = pygame.transform.scale(white_horse, (tile_size//2, tile_size//2))
+black_horse = pygame.image.load("black_horse.png")
+resized_black_horse = pygame.transform.scale(black_horse, (tile_size//2, tile_size//2))
+white_queen = pygame.image.load("white_queen.png")
+resized_white_queen = pygame.transform.scale(white_queen, (tile_size//2, tile_size//2))
+black_queen = pygame.image.load("black_queen.png")
+resized_black_queen = pygame.transform.scale(black_queen, (tile_size//2, tile_size//2))
+white_king = pygame.image.load("white_king.png")
+resized_white_king = pygame.transform.scale(white_king, (tile_size//2, tile_size//2))
+black_king = pygame.image.load("black_king.png")
+resized_black_king = pygame.transform.scale(black_king, (tile_size//2, tile_size//2))
 
 # setting up the timer
 minutes = 0
@@ -711,7 +755,7 @@ for i in range(8):
     for j in range(8):
         coords.append((i*tile_size, j*tile_size))
 
-# more random variables that will be used throughout the code
+# varible used for reseting the colors of the tiles
 tile_selected_original_color = []
 
 # setting up list of pieces for both players and the scores
@@ -788,9 +832,9 @@ while running:
     # if the cursor is custom, then a new cursor will be drawn
     if custom_cursor:
         # hiding the original cursor
-        pygame.mouse.set_visible(True)
-        # drawing the cursor
-        #screen.blit(cursor, pygame.mouse.get_pos())
+        pygame.mouse.set_visible(False)
+        # drawing the cursor image
+        screen.blit(cursor, pygame.mouse.get_pos())
     else:
         # showing the original cursor
         pygame.mouse.set_visible(True)
@@ -808,7 +852,7 @@ while running:
 
     # drawing the timer
     if timer_on:
-        text2 = font.render("Time: "+str(minutes) +":"+ str(seconds), True, (0, 0, 0))
+        text2 = font.render("Timer: "+str(minutes) +":"+ str(seconds), True, (0, 0, 0))
         screen.blit(text2, (500- text2.get_width()/2, 250))
     
     # checking for events 
@@ -835,7 +879,6 @@ while running:
                         tile_selected_original_color.append(tile.color)
                         tile.color = 2
                         tiles_selected.append((tile.x, tile.y))
-                        custom_cursor = True
 
             # finding the piece that was clicked
             piece_selected = False
@@ -845,6 +888,21 @@ while running:
                         if piece.state == "alive":
                             piece_selected = True
                             selected = piece
+                            # setting the cursor to the piece that was selected
+                            custom_cursor = True
+                            if piece.type == "pawn":
+                                cursor = resized_white_pawn
+                            elif piece.type == "bishop":
+                                cursor = resized_white_bishop
+                            elif piece.type == "rook":
+                                cursor = resized_white_rook
+                            elif piece.type == "knight":
+                                cursor = resized_white_horse
+                            elif piece.type == "queen":
+                                cursor = resized_white_queen
+                            elif piece.type == "king":
+                                cursor = resized_white_king
+
                             # getting the possible moves of the piece
                             piece.possible_moves()
                             # marking the possible moves as 3
@@ -861,6 +919,20 @@ while running:
                         if piece.state == "alive":
                             piece_selected = True
                             selected = piece
+                            # setting the cursor to the piece that was selected
+                            custom_cursor = True
+                            if piece.type == "pawn":
+                                cursor = resized_black_pawn
+                            elif piece.type == "bishop":
+                                cursor = resized_black_bishop
+                            elif piece.type == "rook":
+                                cursor = resized_black_rook
+                            elif piece.type == "knight":
+                                cursor = resized_black_horse
+                            elif piece.type == "queen":
+                                cursor = resized_black_queen
+                            elif piece.type == "king":
+                                cursor = resized_black_king
                             # getting the possible moves of the piece
                             piece.possible_moves()
                             # marking the possible moves as 3
@@ -879,6 +951,8 @@ while running:
                         for i in range(len(tiles_selected)):
                             if tile.x == tiles_selected[i][0] and tile.y == tiles_selected[i][1]:
                                 tile.color = tile_selected_original_color[i]
+                # reseting the cursor
+                custom_cursor = False
 
             # checking if the player clicked on a possible move
             for move in available_moves:
