@@ -7,26 +7,98 @@ import tkinter
 
 # function for a timer, that will later be used for timed rounds
 def timer():
-    global running
+    global running, minutes, seconds, current_player, move_time, timer_on
     while running:
-        pass
+        seconds += 1
+        if seconds == 60:
+            minutes += 1
+            seconds = 0
+        if timer_on:
+            if move_time[1] != 0 or move_time[0] != 0:
+                if minutes == move_time[0] and seconds == move_time[1]:
+                    # if the time is up the player that didnt make the move will be switched
+                    if current_player == "light":
+                        current_player = "dark"
+                    else:
+                        current_player = "light"
+        clock.tick(1)
     
 # function to reset the game
 def reset_game():
-    pass
+    print("reseting game")
+    global light_pieces, dark_pieces
+    # for now this function will delete all the pieces and set them up again
+    light_pieces.clear()
+    dark_pieces.clear()
+    
+    # setting up the pieces again
+    # setting up the pawns
+    for i in range(8):
+        light_pieces.append(Pawn(i, 1, 0))
+        dark_pieces.append(Pawn(i, 6, 1))
+    # setting up the rooks
+    for i in range(2):
+        light_pieces.append(Rook(i*7, 0, 0))
+        dark_pieces.append(Rook(i*7, 7, 1))
+    # setting up the knights
+    for i in range(2):
+        light_pieces.append(Knight(i*5+1, 0, 0))
+        dark_pieces.append(Knight(i*5+1, 7, 1))
+    # setting up the bishops
+    for i in range(2):
+        light_pieces.append(Bishop(i*3+2, 0, 0))
+        dark_pieces.append(Bishop(i*3+2, 7, 1))
+    # setting up the queens
+    light_pieces.append(Queen(3, 0, 0))
+    dark_pieces.append(Queen(3, 7, 1))
+    # setting up the kings
+    light_pieces.append(King(4, 0, 0))
+    dark_pieces.append(King(4, 7, 1))
+
+    # seting the current player to light
+    global current_player
+    current_player = players[0]
+
+    # resetting the timer
+    reset_timer()
+
+# function for resetting the timer
+def reset_timer():
+    global minutes, seconds
+    minutes = 0
+    seconds = 0
 
 # function for applying settings
-def apply_settings(window):
+def apply_settings(window, var, var1, var2, entry, entry2):
+    global screen, timer_on
+    if int(entry) > 60 or int(entry) < 0 or int(entry2) > 60 or int(entry2) < 0:
+        print("Invalid input")
+        return
     # closing window
     window.destroy()
-       # in the future this function will apply settings
+    # applying resizability selected
+    if var1 == 1:
+        screen = pygame.display.set_mode((600, 400), pygame.RESIZABLE)
+    else:
+        screen = pygame.display.set_mode((600, 400))
+    # applying timer selection
+    if var2 == 1:
+        timer_on = True
+    else:
+        timer_on = False
+    # applying the timer settings
+    move_time[0] = int(entry)
+    move_time[1] = int(entry2)
+
+    # reseting game to apply the changes
+    reset_game()
 
 # function for the settings window
 def settings_window():
     # setting up the window
     window = tkinter.Tk()
     window.title("Settings")
-    window.geometry("300x200")
+    window.geometry("400x400")
     window.iconbitmap("settings_icon.ico")
     window.resizable(False, False)
     # setting up the main label
@@ -49,10 +121,31 @@ def settings_window():
     var1 = tkinter.IntVar()
     checkbox = tkinter.Checkbutton(frame, variable=var1)
     checkbox.grid(row=1, column=1)
-
+    # setting up a label for the timer
+    label = tkinter.Label(frame, text="Timer", font=("Arial", 16))
+    label.grid(row=2, column=0)
+    # setting up a checkbox for the timer
+    var2 = tkinter.IntVar()
+    checkbox = tkinter.Checkbutton(frame, variable=var2)
+    checkbox.grid(row=2, column=1)
+    # creating a label for subsettings of the timer
+    label = tkinter.Label(frame, text="Timer settings", font=("Arial", 16))
+    label.grid(row=3, column=0, columnspan=2)
+    # creating a label for the minutes setting
+    label = tkinter.Label(frame, text="Minutes:", font=("Arial", 16))
+    label.grid(row=4, column=0)
+    # creating entry for the minutes setting
+    entry = tkinter.Entry(frame, font=("Arial", 16))
+    entry.grid(row=4, column=1)
+    # creating a label for the seconds setting
+    label = tkinter.Label(frame, text="Seconds:", font=("Arial", 16))
+    label.grid(row=5, column=0)
+    # creating entry for the seconds setting
+    entry2 = tkinter.Entry(frame, font=("Arial", 16))
+    entry2.grid(row=5, column=1)
 
     # creating apply button
-    apply_button = tkinter.Button(window, text="Apply", font=("Arial", 16), command=lambda:apply_settings(window))
+    apply_button = tkinter.Button(window, text="Apply", font=("Arial", 16), command=lambda:apply_settings(window, var.get(), var1.get(), var2.get(), entry.get(), entry2.get()))
     apply_button.pack(side="bottom")
 
     window.mainloop()
@@ -593,7 +686,14 @@ resized_dark_king = pygame.transform.scale(dark_king, (tile_size, tile_size))
 settings = pygame.image.load("settings.png")
 resized_settings = pygame.transform.scale(settings, (tile_size, tile_size))
 
-# setting up font for the score
+# custom cursor images
+# later I will add multiple images for the cursor, so that it looks like the piece is selected
+
+# setting up the timer
+minutes = 0
+seconds = 0
+
+# setting up font for the texts
 font = pygame.font.Font(None, 36)
 
 # setting up game board
@@ -625,6 +725,7 @@ players = ["light", "dark"]
 current_player = players[0]
 available_moves = []
 tiles_selected = []
+custom_cursor = False
 
     # setting up the pieces
 # setting up the pawns
@@ -650,8 +751,15 @@ dark_pieces.append(Queen(3, 7, 1))
 light_pieces.append(King(4, 0, 0))
 dark_pieces.append(King(4, 7, 1))
 
+# creating a thread for the timer
+timer_thread = threading.Thread(target=timer)
+timer_on = True
+move_time = [0, 0]
+
 # main loop
 running = True
+# starting the timer
+timer_thread.start()
 while running:
 
     # getting the new score by counting the value of the living pieces
@@ -677,22 +785,39 @@ while running:
     for piece in dark_pieces:
         piece.draw()
 
+    # if the cursor is custom, then a new cursor will be drawn
+    if custom_cursor:
+        # hiding the original cursor
+        pygame.mouse.set_visible(True)
+        # drawing the cursor
+        #screen.blit(cursor, pygame.mouse.get_pos())
+    else:
+        # showing the original cursor
+        pygame.mouse.set_visible(True)
     
     # drawing the score
     text = font.render(str(score1) + " x " +str(score2), True, (0, 0, 0))
     screen.blit(text, (500- text.get_width()/2, 50))
 
     # drawing a label displaying the current player
-    text = font.render(str(current_player) + "'s turn", True, (0, 0, 0))
-    screen.blit(text, (500- text.get_width()/2, 100))
+    text1 = font.render(str(current_player) + "'s turn", True, (0, 0, 0))
+    screen.blit(text1, (500- text1.get_width()/2, 100))
 
     # drawing the settings button
     screen.blit(resized_settings, (500 - resized_settings.get_width()/2, 150))
+
+    # drawing the timer
+    if timer_on:
+        text2 = font.render("Time: "+str(minutes) +":"+ str(seconds), True, (0, 0, 0))
+        screen.blit(text2, (500- text2.get_width()/2, 250))
     
     # checking for events 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_r:
+                reset_game()
         if event.type == pygame.MOUSEBUTTONDOWN:
             # checking if the settings button was clicked
             x, y = pygame.mouse.get_pos()
@@ -710,6 +835,7 @@ while running:
                         tile_selected_original_color.append(tile.color)
                         tile.color = 2
                         tiles_selected.append((tile.x, tile.y))
+                        custom_cursor = True
 
             # finding the piece that was clicked
             piece_selected = False
@@ -772,6 +898,9 @@ while running:
                     selected.x = x
                     selected.y = y
 
+                    # reseting cursor
+                    custom_cursor = False
+
                     # changing the player
                     if current_player == "light":
                         current_player = players[1]
@@ -795,6 +924,9 @@ while running:
                         piece.moves = []
                     for piece in dark_pieces:
                         piece.moves = []
+                    
+                    # reseting timer
+                    reset_timer()
     
     # updating the screen
     clock.tick(60)
