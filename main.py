@@ -25,9 +25,55 @@ def timer():
     
 # function to reset the game
 def reset_game():
-    print("reseting game")
+    global width, height, screen
+    # getting the new width and height of the screen
+    width  = screen.get_width()
+    height = width//1.5
+    # now resizing the screen so it has the right aspect ratio
+    if screen.get_height() != height:
+        screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+    # getting the new tile size
+    global tile_size
+    tile_size = height//8
+    
+       # resizing everything
+    # resizing the images of the pieces
+    global resized_light_pawn, resized_dark_pawn, resized_light_bishop, resized_dark_bishop, resized_light_rook, resized_dark_rook, resized_light_horse, resized_dark_horse, resized_light_queen, resized_dark_queen, resized_light_king, resized_dark_king
+    resized_light_pawn = pygame.transform.scale(light_pawn, (tile_size, tile_size))
+    resized_dark_pawn = pygame.transform.scale(dark_pawn, (tile_size, tile_size))
+    resized_light_bishop = pygame.transform.scale(light_bishop, (tile_size, tile_size))
+    resized_dark_bishop = pygame.transform.scale(dark_bishop, (tile_size, tile_size))
+    resized_light_rook = pygame.transform.scale(light_rook, (tile_size, tile_size))
+    resized_dark_rook = pygame.transform.scale(dark_rook, (tile_size, tile_size))
+    resized_light_horse = pygame.transform.scale(light_horse, (tile_size, tile_size))
+    resized_dark_horse = pygame.transform.scale(dark_horse, (tile_size, tile_size))
+    resized_light_queen = pygame.transform.scale(light_queen, (tile_size, tile_size))
+    resized_dark_queen = pygame.transform.scale(dark_queen, (tile_size, tile_size))
+    resized_light_king = pygame.transform.scale(light_king, (tile_size, tile_size))
+    resized_dark_king = pygame.transform.scale(dark_king, (tile_size, tile_size))
+    # resizing the images for the cursor
+    global resized_white_pawn, resized_black_pawn, resized_white_bishop, resized_black_bishop, resized_white_rook, resized_black_rook, resized_white_horse, resized_black_horse, resized_white_queen, resized_black_queen, resized_white_king, resized_black_king
+    resized_white_pawn = pygame.transform.scale(white_pawn, (tile_size//2, tile_size//2))
+    resized_black_pawn = pygame.transform.scale(black_pawn, (tile_size//2, tile_size//2))
+    resized_white_bishop = pygame.transform.scale(white_bishop, (tile_size//2, tile_size//2))
+    resized_black_bishop = pygame.transform.scale(black_bishop, (tile_size//2, tile_size//2))
+    resized_white_rook = pygame.transform.scale(white_rook, (tile_size//2, tile_size//2))
+    resized_black_rook = pygame.transform.scale(black_rook, (tile_size//2, tile_size//2))
+    resized_white_horse = pygame.transform.scale(white_horse, (tile_size//2, tile_size//2))
+    resized_black_horse = pygame.transform.scale(black_horse, (tile_size//2, tile_size//2))
+    resized_white_queen = pygame.transform.scale(white_queen, (tile_size//2, tile_size//2))
+    resized_black_queen = pygame.transform.scale(black_queen, (tile_size//2, tile_size//2))
+    resized_white_king = pygame.transform.scale(white_king, (tile_size//2, tile_size//2))
+    resized_black_king = pygame.transform.scale(black_king, (tile_size//2, tile_size//2))
+    # resizing the settings image
+    global resized_settings
+    resized_settings = pygame.transform.scale(settings, (tile_size, tile_size))
+    # resizing the font
+    global font
+    font = pygame.font.Font(None, int(tile_size - tile_size//4))
+
     global light_pieces, dark_pieces
-    # for now this function will delete all the pieces and set them up again
+    #this function will delete all the pieces and set them up again
     light_pieces.clear()
     dark_pieces.clear()
 
@@ -85,7 +131,7 @@ def reset_timer():
 
 # function for applying settings
 def apply_settings(window, var, var1, var2, entry, entry2):
-    global screen, timer_on
+    global screen, timer_on, width, height
     if int(entry) > 60 or int(entry) < 0 or int(entry2) > 60 or int(entry2) < 0:
         print("Invalid input")
         return
@@ -93,9 +139,9 @@ def apply_settings(window, var, var1, var2, entry, entry2):
     window.destroy()
     # applying resizability selected
     if var1 == 1:
-        screen = pygame.display.set_mode((600, 400), pygame.RESIZABLE)
+        screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
     else:
-        screen = pygame.display.set_mode((600, 400))
+        screen = pygame.display.set_mode((width, height))
     # applying timer selection
     if var2 == 1:
         timer_on = True
@@ -180,16 +226,16 @@ class Board_tile:
     def draw(self):
         # 0 = white
         if self.color == 0:
-            pygame.draw.rect(screen, (255, 255, 255), (self.x*50, self.y*50, 50, 50))
+            pygame.draw.rect(screen, (255, 255, 255), (self.x*tile_size, self.y*tile_size, tile_size, tile_size))
         # 1 = black
         elif self.color == 1:
-            pygame.draw.rect(screen, (0, 0, 0), (self.x*50, self.y*50, 50, 50))
+            pygame.draw.rect(screen, (0, 0, 0), (self.x*tile_size, self.y*tile_size, tile_size, tile_size))
         # 2 = selected, red
         elif self.color == 2:
-            pygame.draw.rect(screen, (255, 0, 0), (self.x*50, self.y*50, 50, 50))
+            pygame.draw.rect(screen, (255, 0, 0), (self.x*tile_size, self.y*tile_size, tile_size, tile_size))
         # 3 = possible move, green
         elif self.color == 3:
-            pygame.draw.rect(screen, (0, 255, 0), (self.x*50, self.y*50, 50, 50))
+            pygame.draw.rect(screen, (0, 255, 0), (self.x*tile_size, self.y*tile_size, tile_size, tile_size))
 
 # class for all the pieces
 class Piece:
@@ -210,7 +256,7 @@ class Pawn(Piece):
             self.image = resized_dark_pawn
     def draw(self):
         if self.state == "alive":
-            screen.blit(self.image, (self.x*50, self.y*50))
+            screen.blit(self.image, (self.x*tile_size, self.y*tile_size))
     # this is a good enough implementation of the possible moves
     def possible_moves(self):
         self.moves = []
@@ -262,7 +308,7 @@ class Rook(Piece):
             self.image = resized_dark_rook
     def draw(self):
         if self.state == "alive":
-            screen.blit(self.image, (self.x*50, self.y*50))
+            screen.blit(self.image, (self.x*tile_size, self.y*tile_size))
     # finaly a good implementation of the possible moves for the rook
     def possible_moves(self):
         self.moves = []
@@ -361,7 +407,7 @@ class Knight(Piece):
             self.image = resized_dark_horse
     def draw(self):
         if self.state == "alive":
-            screen.blit(self.image, (self.x*50, self.y*50))
+            screen.blit(self.image, (self.x*tile_size, self.y*tile_size))
     # this is a good enough implementation of the possible moves
     def possible_moves(self):
         self.moves = []
@@ -401,7 +447,7 @@ class Bishop(Piece):
             self.image = resized_dark_bishop
     def draw(self):
         if self.state == "alive":
-            screen.blit(self.image, (self.x*50, self.y*50))
+            screen.blit(self.image, (self.x*tile_size, self.y*tile_size))
     # this is a very basic implementation of the possible moves, I will add more logic later
     def possible_moves(self):
         self.moves = []
@@ -489,7 +535,7 @@ class Queen(Piece):
             self.image = resized_dark_queen
     def draw(self):
         if self.state == "alive":
-            screen.blit(self.image, (self.x*50, self.y*50))
+            screen.blit(self.image, (self.x*tile_size, self.y*tile_size))
 
     # queen uses a combination of rook and bishop moves, so I just copied the code from those classes
     def possible_moves(self):
@@ -638,8 +684,8 @@ class King(Piece):
             self.image = resized_dark_king
     def draw(self):
         if self.state == "alive":
-            screen.blit(self.image, (self.x*50, self.y*50))
-    # this is a very basic implementation of the possible moves, I will add more logic later        
+            screen.blit(self.image, (self.x*tile_size, self.y*tile_size))
+    # this is a good enough implementation of the possible moves  
     def possible_moves(self):
         self.moves = []
         self.moves.append((self.x+1, self.y))
@@ -669,7 +715,9 @@ class King(Piece):
 # Initialize the game
 pygame.init()
 # setting up the screen
-screen = pygame.display.set_mode((600, 400), pygame.RESIZABLE)
+width = 600
+height = 400
+screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
 pygame.display.set_caption("Chess")
 pygame.display.set_icon(pygame.image.load("icon.png"))
 clock = pygame.time.Clock()
@@ -738,7 +786,7 @@ minutes = 0
 seconds = 0
 
 # setting up font for the texts
-font = pygame.font.Font(None, 36)
+font = pygame.font.Font(None, tile_size- tile_size//4)
 
 # setting up game board
 board_tiles = []
@@ -770,6 +818,8 @@ current_player = players[0]
 available_moves = []
 tiles_selected = []
 custom_cursor = False
+custom_cursor_piece = None
+custom_cursor_color = None
 
     # setting up the pieces
 # setting up the pawns
@@ -838,22 +888,24 @@ while running:
     else:
         # showing the original cursor
         pygame.mouse.set_visible(True)
+        custom_cursor_piece = None
+        custom_cursor_color = None
     
     # drawing the score
     text = font.render(str(score1) + " x " +str(score2), True, (0, 0, 0))
-    screen.blit(text, (500- text.get_width()/2, 50))
+    screen.blit(text, (width- text.get_width()-50, tile_size))
 
     # drawing a label displaying the current player
     text1 = font.render(str(current_player) + "'s turn", True, (0, 0, 0))
-    screen.blit(text1, (500- text1.get_width()/2, 100))
+    screen.blit(text1, (width- text1.get_width()-50, tile_size * 2))
 
     # drawing the settings button
-    screen.blit(resized_settings, (500 - resized_settings.get_width()/2, 150))
+    screen.blit(resized_settings, (width - resized_settings.get_width()-50, tile_size * 3))
 
     # drawing the timer
     if timer_on:
         text2 = font.render("Timer: "+str(minutes) +":"+ str(seconds), True, (0, 0, 0))
-        screen.blit(text2, (500- text2.get_width()/2, 250))
+        screen.blit(text2, (width- text2.get_width()-50, tile_size * 5))
     
     # checking for events 
     for event in pygame.event.get():
@@ -865,12 +917,12 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             # checking if the settings button was clicked
             x, y = pygame.mouse.get_pos()
-            if x > 500 - resized_settings.get_width()/2 and x < 500 + resized_settings.get_width()/2 and y > 150 and y < 150 + resized_settings.get_height():
+            if x > width - resized_settings.get_width()-50 and x < width - 50 and y > tile_size * 3 and y < tile_size * 4:
                 settings_window()
 
             # determining the tile that was clicked, if it was clicked
-            x = x // 50
-            y = y // 50
+            x = x // tile_size
+            y = y // tile_size
 
             # finding the tile that was clicked and marking it as 2
             if len(tile_selected_original_color) == 0:
@@ -884,24 +936,31 @@ while running:
             piece_selected = False
             if current_player == "light":
                 for piece in light_pieces:
-                    if piece.x == x and piece.y == y:
+                    if piece.x == x and piece.y == y and custom_cursor_color == None and custom_cursor_piece == None:
                         if piece.state == "alive":
                             piece_selected = True
                             selected = piece
                             # setting the cursor to the piece that was selected
                             custom_cursor = True
+                            custom_cursor_color = 0
                             if piece.type == "pawn":
                                 cursor = resized_white_pawn
+                                custom_cursor_piece = "pawn"
                             elif piece.type == "bishop":
                                 cursor = resized_white_bishop
+                                custom_cursor_piece = "bishop"
                             elif piece.type == "rook":
                                 cursor = resized_white_rook
+                                custom_cursor_piece = "rook"
                             elif piece.type == "knight":
                                 cursor = resized_white_horse
+                                custom_cursor_piece = "knight"
                             elif piece.type == "queen":
                                 cursor = resized_white_queen
+                                custom_cursor_piece = "queen"
                             elif piece.type == "king":
                                 cursor = resized_white_king
+                                custom_cursor_piece = "king"
 
                             # getting the possible moves of the piece
                             piece.possible_moves()
@@ -915,24 +974,31 @@ while running:
                                         tiles_selected.append((tile.x, tile.y))
             else:
                 for piece in dark_pieces:
-                    if piece.x == x and piece.y == y:
+                    if piece.x == x and piece.y == y and custom_cursor_color == None and custom_cursor_piece == None:
                         if piece.state == "alive":
                             piece_selected = True
                             selected = piece
                             # setting the cursor to the piece that was selected
                             custom_cursor = True
+                            custom_cursor_color = 1
                             if piece.type == "pawn":
                                 cursor = resized_black_pawn
+                                custom_cursor_piece = "pawn"
                             elif piece.type == "bishop":
                                 cursor = resized_black_bishop
+                                custom_cursor_piece = "bishop"
                             elif piece.type == "rook":
                                 cursor = resized_black_rook
+                                custom_cursor_piece = "rook"
                             elif piece.type == "knight":
                                 cursor = resized_black_horse
+                                custom_cursor_piece = "knight"
                             elif piece.type == "queen":
                                 cursor = resized_black_queen
+                                custom_cursor_piece = "queen"
                             elif piece.type == "king":
                                 cursor = resized_black_king
+                                custom_cursor_piece = "king"
                             # getting the possible moves of the piece
                             piece.possible_moves()
                             # marking the possible moves as 3
@@ -954,6 +1020,11 @@ while running:
                 # reseting the cursor
                 custom_cursor = False
 
+            # this is an attempt to fix a known bug, where the player can select multiple pieces at once and move one of them to a tile that is not a possible move of that piece
+               # this didnt help, so I will try something else
+            #if custom_cursor_color == None and custom_cursor_piece == None:
+                #available_moves.clear()
+            #print(available_moves)
             # checking if the player clicked on a possible move
             for move in available_moves:
                 if move[0] == x and move[1] == y:
@@ -1001,7 +1072,13 @@ while running:
                     
                     # reseting timer
                     reset_timer()
-    
+
+    #print(custom_cursor_color, custom_cursor_piece)
+
+    # this is my second attempt to fix the bug, and it seems like this one works!
+    if custom_cursor_color == None and custom_cursor_piece == None:
+        available_moves.clear()
+
     # updating the screen
     clock.tick(60)
     pygame.display.update()
