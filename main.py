@@ -5,6 +5,27 @@ import tkinter
 
     # functions
 
+# function for the end screen loop
+def end_screen(who_won):
+    global running
+    end_screen_running = True
+    while end_screen_running:
+        # event loop
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                end_screen_running = False
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_r:
+                    end_screen_running = False
+                    reset_game()
+        # drawing the end screen
+        screen.fill((0, 0, 0))
+        text = font.render(f"{who_won} won", True, (255, 255, 255))
+        screen.blit(text, (width//2 - text.get_width()//2, height//2 - text.get_height()//2))
+
+        pygame.display.update()
+
 # function for a timer, that will later be used for timed rounds
 def timer():
     global running, minutes, seconds, current_player, move_time, timer_on
@@ -286,20 +307,13 @@ class Pawn(Piece):
             for piece in dark_pieces:
                 if piece.x == self.x+1 and piece.y == self.y:
                     # checking if the piece is a pawn and if it has moved 2 tiles
-                    #print("1")
-                    #print(piece.has_moved_2_tiles)
-                    #print(piece.has_moved_2_tiles)
-                    #print(piece.how_many_turns)
-                    #print(self.number_of_moves)
-                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 3:
+                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 2:
                         self.moves.append((self.x+1, self.y+1))
                         en_passant_tiles.append((self.x+1, self.y+1))
                         en_passant = True
                 if piece.x == self.x-1 and piece.y == self.y:
-                    #print("2")
-                    #print(piece.has_moved_2_tiles)
                     # checking if the piece is a pawn and if it has moved 2 tiles
-                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 3:
+                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 2:
                         self.moves.append((self.x-1, self.y+1))
                         en_passant_tiles.append((self.x-1, self.y+1))
                         en_passant = True
@@ -312,18 +326,14 @@ class Pawn(Piece):
             # first checking if there is a piece next to the moving pawn
             for piece in light_pieces:
                 if piece.x == self.x+1 and piece.y == self.y:
-                    #print("3")
-                    #print(piece.has_moved_2_tiles)
                     # checking if the piece is a pawn and if it has moved 2 tiles
-                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 3:
+                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 2:
                         self.moves.append((self.x+1, self.y-1))
                         en_passant_tiles.append((self.x+1, self.y-1))
                         en_passant = True
                 if piece.x == self.x-1 and piece.y == self.y:
-                    #print("4")
-                    #print(piece.has_moved_2_tiles)
                     # checking if the piece is a pawn and if it has moved 2 tiles
-                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 3:
+                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 2:
                         self.moves.append((self.x-1, self.y-1))
                         en_passant_tiles.append((self.x-1, self.y-1))
                         en_passant = True
@@ -749,6 +759,39 @@ class King(Piece):
     def draw(self):
         if self.state == "alive":
             screen.blit(self.image, (self.x*tile_size, self.y*tile_size))
+    # function for checking if the king is in check
+    def in_checks(self):
+        global in_check
+        # checking if the king is in check by the enemy pieces
+        if self.color == 0:
+            for piece in dark_pieces:
+                if piece.type == "king":
+                    pass
+                elif piece.type == "pawn":
+                    if piece.x+1 == self.x and piece.y-1 == self.y:
+                        in_check = True
+                    if piece.x-1 == self.x and piece.y-1 == self.y:
+                        in_check = True
+                else:
+                    piece.possible_moves()
+                    for move in piece.moves:
+                        if move[0] == self.x and move[1] == self.y:
+                            in_check = True
+        else:
+            for piece in light_pieces:
+                if piece.type == "king":
+                    pass
+                elif piece.type == "pawn":
+                    if piece.x+1 == self.x and piece.y+1 == self.y:
+                        in_check = True
+                    if piece.x-1 == self.x and piece.y+1 == self.y:
+                        in_check = True
+                else:
+                    piece.possible_moves()
+                    for move in piece.moves:
+                        if move[0] == self.x and move[1] == self.y:
+                            in_check = True
+    
     # this is a good enough implementation of the possible moves  
     def possible_moves(self):
         self.moves = []
@@ -775,6 +818,88 @@ class King(Piece):
                 for move in self.moves:
                     if piece.x == move[0] and piece.y == move[1]:
                         self.moves.remove(move)
+        #print(self.moves)
+        # getting allllllll the moves from the enemy pieces, so the king can't go there
+        if self.color == 0:
+            for piece in dark_pieces:
+                if piece.type == "king":
+                    # getting the kings location and removing his moves
+                    tiles = []
+                    x = piece.x
+                    y = piece.y
+                    tiles.append((x+1, y))
+                    tiles.append((x-1, y))
+                    tiles.append((x, y+1))
+                    tiles.append((x, y-1))
+                    tiles.append((x+1, y+1))
+                    tiles.append((x-1, y+1))
+                    tiles.append((x+1, y-1))
+                    tiles.append((x-1, y-1))
+                    for tile in tiles:
+                        try:
+                            self.moves.remove(tile)
+                        except:
+                            pass
+                    tiles.clear()
+
+                elif piece.type == "pawn":
+                    # getting the pawns location and removing his moves that can only happen if there is a piece to take
+                    x = piece.x
+                    y = piece.y
+                    # trying to remove the moves
+                    try:
+                        self.moves.remove((x+1, y-1))
+                    except:
+                        pass
+                    try:
+                        self.moves.remove((x-1, y-1))
+                    except:
+                        pass
+                else:
+                    piece.possible_moves()
+                    for move in piece.moves:
+                        for move1 in self.moves:
+                            if move[0] == move1[0] and move[1] == move1[1]:
+                                self.moves.remove(move1)
+        else:
+            for piece in light_pieces:
+                if piece.type == "king":
+                    # getting the kings location and removing his moves
+                    tiles = []
+                    x = piece.x
+                    y = piece.y
+                    tiles.append((x+1, y))
+                    tiles.append((x-1, y))
+                    tiles.append((x, y+1))
+                    tiles.append((x, y-1))
+                    tiles.append((x+1, y+1))
+                    tiles.append((x-1, y+1))
+                    tiles.append((x+1, y-1))
+                    tiles.append((x-1, y-1))
+                    for tile in tiles:
+                        try:
+                            self.moves.remove(tile)
+                        except:
+                            pass
+                    tiles.clear()
+                elif piece.type == "pawn":
+                    tiles_to_remove = []
+                    x = piece.x
+                    y = piece.y
+                    tiles_to_remove.append((x+1, y+1))
+                    tiles_to_remove.append((x-1, y+1))
+                    for tile in tiles_to_remove:
+                        try:
+                            self.moves.remove(tile)
+                        except:
+                            pass
+                else:
+                    piece.possible_moves()
+                    for move in piece.moves:
+                        for move1 in self.moves:
+                            if move[0] == move1[0] and move[1] == move1[1]:
+                                self.moves.remove(move1)
+        #print(self.moves)
 
 # Initialize the game
 pygame.init()
@@ -882,6 +1007,7 @@ light_pieces = []
 score1 = 0
 dark_pieces = []
 score2 = 0
+in_check = False
 
 # seting up player turns variables
 players = ["light", "dark"]
@@ -1112,16 +1238,25 @@ while running:
                         if abs(selected.y - y) == 2:
                             selected.has_moved_2_tiles = True
                             has_to_be_checked.append(selected)
-                            #print(selected.has_moved_2_tiles)
 
                     # moving the piece to the new tile
                     selected.x = x
                     selected.y = y
 
+                    # if the piece is a pawn and it reached the end of the board, it will be promoted to a queen
+                    if selected.color == 0 and selected.y == 7 and selected.type == "pawn":
+                        # removing the pawn
+                        light_pieces.remove(selected)
+                        # adding the queen
+                        light_pieces.append(Queen(selected.x, selected.y, 0))
+                    if selected.color == 1 and selected.y == 0 and selected.type == "pawn":
+                        # removing the pawn
+                        dark_pieces.remove(selected)
+                        # adding the queen
+                        dark_pieces.append(Queen(selected.x, selected.y, 1))
+
                     # if en passant happened, the pawn will be taken
-                    #print(en_passant)
                     if en_passant:
-                        print("en passant")
                         for t in en_passant_tiles:
                             if t[0] == x and t[1] == y:
                                 for piece in light_pieces:
@@ -1131,7 +1266,6 @@ while running:
                                     if piece.x == x and piece.y == y-1:
                                         piece.state = "dead"
                             
-                    
                     # resetting the en passant
                     en_passant = False
                     en_passant_tiles.clear()
@@ -1144,20 +1278,23 @@ while running:
                         current_player = players[1]
                     else:
                         current_player = players[0]
+
+                    # checking if the king is in check
+                    for piece in light_pieces:
+                        if piece.type == "king":
+                            piece.in_checks()
+                    for piece in dark_pieces:
+                        if piece.type == "king":
+                            piece.in_checks()
                     
-                    # reseting all the has moved 2 tiles, this is done so that the en passant can be done only during one turn
-                        # this wont work here, so I have to find another way
-                    #for piece in light_pieces:
-                    #    if piece.type == "pawn":
-                    #        piece.has_moved_2_tiles = False
-                    #for piece in dark_pieces:
-                    #    if piece.type == "pawn":
-                    #        piece.has_moved_2_tiles = False
+                    # if king is in check, notify the player
+                    if in_check:
+                        print("in check")
+                        in_check = False
 
                     # adding one turn to the number of turns to every pawn that has been added to check
                     for piece in has_to_be_checked:
                         piece.how_many_turns += 1
-                        #print(piece.how_many_turns)
 
                     # if some pawn jumped two tiles two rounds ago, it will be forgotten
                     for piece in light_pieces:
@@ -1195,6 +1332,14 @@ while running:
                     
                     # reseting timer
                     reset_timer()
+        
+    # checking if both kings are alive
+    for piece in light_pieces:
+        if piece.type == "king" and piece.state == "dead":
+            end_screen("dark")
+    for piece in dark_pieces:
+        if piece.type == "king" and piece.state == "dead":
+            end_screen("light")
 
     # this is my second attempt to fix the bug, and it seems like this one works!
     if custom_cursor_color == None and custom_cursor_piece == None:
