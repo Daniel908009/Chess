@@ -120,6 +120,11 @@ def reset_game():
     global current_player
     current_player = players[0]
 
+    # clearing lists for the en passant
+    global en_passant, en_passant_tiles
+    en_passant = False
+    en_passant_tiles.clear()
+
     # resetting the timer
     reset_timer()
 
@@ -131,9 +136,8 @@ def reset_timer():
 
 # function for applying settings
 def apply_settings(window, var, var1, var2, entry, entry2):
-    global screen, timer_on, width, height
+    global screen, timer_on, width, height, tile_size, move_time, special_moves 
     if int(entry) > 60 or int(entry) < 0 or int(entry2) > 60 or int(entry2) < 0:
-        print("Invalid input")
         return
     # closing window
     window.destroy()
@@ -147,6 +151,8 @@ def apply_settings(window, var, var1, var2, entry, entry2):
         timer_on = True
     else:
         timer_on = False
+    if var == 1:
+        special_moves = True
     # applying the timer settings
     move_time[0] = int(entry)
     move_time[1] = int(entry2)
@@ -159,7 +165,7 @@ def settings_window():
     # setting up the window
     window = tkinter.Tk()
     window.title("Settings")
-    window.geometry("400x400")
+    window.geometry("700x400")
     window.iconbitmap("settings_icon.ico")
     window.resizable(False, False)
     # setting up the main label
@@ -200,6 +206,9 @@ def settings_window():
     e1.set(str(move_time[0]))
     entry = tkinter.Entry(frame, font=("Arial", 16), textvariable=e1)
     entry.grid(row=4, column=1)
+    # creating a label for instructions
+    label = tkinter.Label(frame, text="Max 60 minutes", font=("Arial", 12))
+    label.grid(row=4, column=2)
     # creating a label for the seconds setting
     label = tkinter.Label(frame, text="Seconds:", font=("Arial", 16))
     label.grid(row=5, column=0)
@@ -208,6 +217,9 @@ def settings_window():
     e2.set(str(move_time[1]))
     entry2 = tkinter.Entry(frame, font=("Arial", 16), textvariable=e2)
     entry2.grid(row=5, column=1)
+    # creating a label for instructions
+    label = tkinter.Label(frame, text="Max 60 seconds", font=("Arial", 12))
+    label.grid(row=5, column=2)
 
     # creating apply button
     apply_button = tkinter.Button(window, text="Apply", font=("Arial", 16), command=lambda:apply_settings(window, var.get(), var1.get(), var2.get(), entry.get(), entry2.get()))
@@ -243,6 +255,7 @@ class Piece:
         self.x = x
         self.y = y
         self.color = color
+
 # class for the pawn
 class Pawn(Piece):
     def __init__(self, x, y, color):
@@ -250,6 +263,9 @@ class Pawn(Piece):
         self.value = 1
         self.type = "pawn"
         self.state = "alive"
+        self.number_of_moves = 0
+        self.has_moved_2_tiles = False
+        self.how_many_turns = 0
         if self.color == 0:
             self.image = resized_light_pawn
         else:
@@ -259,11 +275,59 @@ class Pawn(Piece):
             screen.blit(self.image, (self.x*tile_size, self.y*tile_size))
     # this is a good enough implementation of the possible moves
     def possible_moves(self):
+        global en_passant, en_passant_tiles
         self.moves = []
         if self.color == 0:
             self.moves.append((self.x, self.y+1))
+            if self.number_of_moves == 0:
+                self.moves.append((self.x, self.y+2))
+            # en passant logic
+            # first checking if there is a piece next to the moving pawn
+            for piece in dark_pieces:
+                if piece.x == self.x+1 and piece.y == self.y:
+                    # checking if the piece is a pawn and if it has moved 2 tiles
+                    #print("1")
+                    #print(piece.has_moved_2_tiles)
+                    #print(piece.has_moved_2_tiles)
+                    #print(piece.how_many_turns)
+                    #print(self.number_of_moves)
+                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 3:
+                        self.moves.append((self.x+1, self.y+1))
+                        en_passant_tiles.append((self.x+1, self.y+1))
+                        en_passant = True
+                if piece.x == self.x-1 and piece.y == self.y:
+                    #print("2")
+                    #print(piece.has_moved_2_tiles)
+                    # checking if the piece is a pawn and if it has moved 2 tiles
+                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 3:
+                        self.moves.append((self.x-1, self.y+1))
+                        en_passant_tiles.append((self.x-1, self.y+1))
+                        en_passant = True
+
         else:
             self.moves.append((self.x, self.y-1))
+            if self.number_of_moves == 0:
+                self.moves.append((self.x, self.y-2))
+            # en passant logic
+            # first checking if there is a piece next to the moving pawn
+            for piece in light_pieces:
+                if piece.x == self.x+1 and piece.y == self.y:
+                    #print("3")
+                    #print(piece.has_moved_2_tiles)
+                    # checking if the piece is a pawn and if it has moved 2 tiles
+                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 3:
+                        self.moves.append((self.x+1, self.y-1))
+                        en_passant_tiles.append((self.x+1, self.y-1))
+                        en_passant = True
+                if piece.x == self.x-1 and piece.y == self.y:
+                    #print("4")
+                    #print(piece.has_moved_2_tiles)
+                    # checking if the piece is a pawn and if it has moved 2 tiles
+                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 3:
+                        self.moves.append((self.x-1, self.y-1))
+                        en_passant_tiles.append((self.x-1, self.y-1))
+                        en_passant = True
+
         # removing the moves that are out of the board
         for move in self.moves:
             if move[0] < 0 or move[0] > 7 or move[1] < 0 or move[1] > 7:
@@ -806,6 +870,13 @@ for i in range(8):
 # varible used for reseting the colors of the tiles
 tile_selected_original_color = []
 
+# variable for en passant
+en_passant_tiles = []
+en_passant = False
+has_to_be_checked = []
+
+special_moves = True
+
 # setting up list of pieces for both players and the scores
 light_pieces = []
 score1 = 0
@@ -900,12 +971,12 @@ while running:
     screen.blit(text1, (width- text1.get_width()-50, tile_size * 2))
 
     # drawing the settings button
-    screen.blit(resized_settings, (width - resized_settings.get_width()-50, tile_size * 3))
+    screen.blit(resized_settings, (width - resized_settings.get_width()-50, tile_size * 4))
 
     # drawing the timer
     if timer_on:
         text2 = font.render("Timer: "+str(minutes) +":"+ str(seconds), True, (0, 0, 0))
-        screen.blit(text2, (width- text2.get_width()-50, tile_size * 5))
+        screen.blit(text2, (width- text2.get_width()-50, tile_size * 3))
     
     # checking for events 
     for event in pygame.event.get():
@@ -917,7 +988,7 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             # checking if the settings button was clicked
             x, y = pygame.mouse.get_pos()
-            if x > width - resized_settings.get_width()-50 and x < width - 50 and y > tile_size * 3 and y < tile_size * 4:
+            if x > width - resized_settings.get_width()-50 and x < width - 50 and y > tile_size * 4 and y < tile_size * 5:
                 settings_window()
 
             # determining the tile that was clicked, if it was clicked
@@ -1020,15 +1091,10 @@ while running:
                 # reseting the cursor
                 custom_cursor = False
 
-            # this is an attempt to fix a known bug, where the player can select multiple pieces at once and move one of them to a tile that is not a possible move of that piece
-               # this didnt help, so I will try something else
-            #if custom_cursor_color == None and custom_cursor_piece == None:
-                #available_moves.clear()
-            #print(available_moves)
             # checking if the player clicked on a possible move
             for move in available_moves:
                 if move[0] == x and move[1] == y:
-
+                    
                     # if there is a piece in the tile for the move, it will be taken and marked as dead
                     for piece in light_pieces:
                         if piece.x == x and piece.y == y:
@@ -1038,10 +1104,37 @@ while running:
                         if piece.x == x and piece.y == y:
                             if piece.state == "alive":
                                 piece.state = "dead"
+                    
+                    # if the piece is pawn than a 1 will be added to the number of moves
+                    if selected.type == "pawn":
+                        selected.number_of_moves += 1
+                        # if the pawn moved two tiles it will be marked
+                        if abs(selected.y - y) == 2:
+                            selected.has_moved_2_tiles = True
+                            has_to_be_checked.append(selected)
+                            #print(selected.has_moved_2_tiles)
 
                     # moving the piece to the new tile
                     selected.x = x
                     selected.y = y
+
+                    # if en passant happened, the pawn will be taken
+                    #print(en_passant)
+                    if en_passant:
+                        print("en passant")
+                        for t in en_passant_tiles:
+                            if t[0] == x and t[1] == y:
+                                for piece in light_pieces:
+                                    if piece.x == x and piece.y == y+1:
+                                        piece.state = "dead"
+                                for piece in dark_pieces:
+                                    if piece.x == x and piece.y == y-1:
+                                        piece.state = "dead"
+                            
+                    
+                    # resetting the en passant
+                    en_passant = False
+                    en_passant_tiles.clear()
 
                     # reseting cursor
                     custom_cursor = False
@@ -1051,6 +1144,36 @@ while running:
                         current_player = players[1]
                     else:
                         current_player = players[0]
+                    
+                    # reseting all the has moved 2 tiles, this is done so that the en passant can be done only during one turn
+                        # this wont work here, so I have to find another way
+                    #for piece in light_pieces:
+                    #    if piece.type == "pawn":
+                    #        piece.has_moved_2_tiles = False
+                    #for piece in dark_pieces:
+                    #    if piece.type == "pawn":
+                    #        piece.has_moved_2_tiles = False
+
+                    # adding one turn to the number of turns to every pawn that has been added to check
+                    for piece in has_to_be_checked:
+                        piece.how_many_turns += 1
+                        #print(piece.how_many_turns)
+
+                    # if some pawn jumped two tiles two rounds ago, it will be forgotten
+                    for piece in light_pieces:
+                        if piece.type == "pawn" and piece.how_many_turns == 2:
+                            piece.has_moved_2_tiles = False
+                            try:
+                                has_to_be_checked.remove(piece)
+                            except:
+                                pass
+                    for piece in dark_pieces:
+                        if piece.type == "pawn" and piece.how_many_turns == 2:
+                            piece.has_moved_2_tiles = False
+                            try:
+                                has_to_be_checked.remove(piece)
+                            except:
+                                pass
 
                     # clearing the available moves
                     available_moves.clear()
@@ -1072,8 +1195,6 @@ while running:
                     
                     # reseting timer
                     reset_timer()
-
-    #print(custom_cursor_color, custom_cursor_piece)
 
     # this is my second attempt to fix the bug, and it seems like this one works!
     if custom_cursor_color == None and custom_cursor_piece == None:
