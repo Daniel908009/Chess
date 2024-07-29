@@ -393,6 +393,7 @@ class Rook(Piece):
         self.type = "rook"
         self.state = "alive"
         self.can_castle = True
+        self.castle_moves = []
         if self.color == 0:
             self.image = resized_light_rook
         else:
@@ -776,6 +777,7 @@ class King(Piece):
         self.state = "alive"
         self.can_castle = True
         self.castling_moves = []
+        self.checked_by = None
         if self.color == 0:
             self.image = resized_light_king
         else:
@@ -801,6 +803,9 @@ class King(Piece):
                     for move in piece.moves:
                         if move[0] == self.x and move[1] == self.y:
                             in_check = True
+                if in_check and self.checked_by == None:
+                    self.checked_by = piece
+                    print("checked by", piece)
         else:
             for piece in light_pieces:
                 if piece.type == "king":
@@ -815,6 +820,9 @@ class King(Piece):
                     for move in piece.moves:
                         if move[0] == self.x and move[1] == self.y:
                             in_check = True
+                if in_check and self.checked_by == None:
+                    self.checked_by = piece
+                    print("checked by", piece)
     
     # this is a good enough implementation of the possible moves  
     def possible_moves(self):
@@ -868,7 +876,6 @@ class King(Piece):
                 for piece in dark_pieces:
                     if piece.type == "rook":
                         if piece.can_castle:
-                            #print("can castle")
                             x = piece.x
                             y = piece.y
                             # checking for pieces in between
@@ -899,10 +906,6 @@ class King(Piece):
                                 self.moves.append((self.x+2, self.y))
                                 self.castling_moves.append((self.x+2, self.y))
 
-        # removing the moves that are out of the board
-        for move in self.moves:
-            if move[0] < 0 or move[0] > 8 or move[1] < 0 or move[1] > 8:
-                self.moves.remove(move)
         # removing the tiles that are already by allied pieces
         if self.color == 0:
             for piece in light_pieces:
@@ -957,6 +960,10 @@ class King(Piece):
                         for move1 in self.moves:
                             if move[0] == move1[0] and move[1] == move1[1]:
                                 self.moves.remove(move1)
+            # removing the moves that are out of the board
+            for move in self.moves:
+                if move[0] < 0 or move[0] > 8 or move[1] < 1 or move[1] > 8:
+                    self.moves.remove(move)
         else:
             for piece in light_pieces:
                 if piece.type == "king":
@@ -995,6 +1002,12 @@ class King(Piece):
                         for move1 in self.moves:
                             if move[0] == move1[0] and move[1] == move1[1]:
                                 self.moves.remove(move1)
+        # removing the moves that are out of the board
+        for move in self.moves:
+            #print(move)
+            if move[0] < 0 or move[0] > 8 or move[1] < 1 or move[1] > 8:
+                self.moves.remove(move)
+        #print(self.moves)
 
 # Initialize the game
 pygame.init()
@@ -1243,7 +1256,6 @@ while running:
                             if piece.type == "pawn" and piece.y == 8:
                                 piece.state = "dead"
                                 light_pieces.append(Queen(piece.x, piece.y, 0))
-                                #print("white queen")
                                 promotion = False
                     # checking if the white rook was clicked
                     if x > tile_size*3 and x < tile_size*4 and y > tile_size*9 and y < tile_size*10:
@@ -1251,7 +1263,6 @@ while running:
                             if piece.type == "pawn" and piece.y == 8:
                                 piece.state = "dead"
                                 light_pieces.append(Rook(piece.x, piece.y, 0))
-                                #print("white rook")
                                 promotion = False
                     # checking if the white bishop was clicked
                     if x > tile_size*4 and x < tile_size*5 and y > tile_size*9 and y < tile_size*10:
@@ -1259,7 +1270,6 @@ while running:
                             if piece.type == "pawn" and piece.y == 8:
                                 piece.state = "dead"
                                 light_pieces.append(Bishop(piece.x, piece.y, 0))
-                                #print("white bishop")
                                 promotion = False
                     # checking if the white knight was clicked
                     if x > tile_size*5 and x < tile_size*6 and y > tile_size*9 and y < tile_size*10:
@@ -1267,7 +1277,6 @@ while running:
                             if piece.type == "pawn" and piece.y == 8:
                                 piece.state = "dead"
                                 light_pieces.append(Knight(piece.x, piece.y, 0))
-                                #print("white knight")
                                 promotion = False
                 else:
                     # checking if the black queen was clicked
@@ -1276,7 +1285,6 @@ while running:
                             if piece.type == "pawn" and piece.y == 1:
                                 piece.state = "dead"
                                 dark_pieces.append(Queen(piece.x, piece.y, 1))
-                                #print("black queen")
                                 promotion = False
                     # checking if the black rook was clicked
                     if x > tile_size*3 and x < tile_size*4 and y > 0 and y < tile_size:
@@ -1284,7 +1292,6 @@ while running:
                             if piece.type == "pawn" and piece.y == 1:
                                 piece.state = "dead"
                                 dark_pieces.append(Rook(piece.x, piece.y, 1))
-                                #print("black rook")
                                 promotion = False
                     # checking if the black bishop was clicked
                     if x > tile_size*4 and x < tile_size*5 and y > 0 and y < tile_size:
@@ -1292,7 +1299,6 @@ while running:
                             if piece.type == "pawn" and piece.y == 1:
                                 piece.state = "dead"
                                 dark_pieces.append(Bishop(piece.x, piece.y, 1))
-                                #print("black bishop")
                                 promotion = False
                     # checking if the black knight was clicked
                     if x > tile_size*5 and x < tile_size*6 and y > 0 and y < tile_size:
@@ -1300,7 +1306,6 @@ while running:
                             if piece.type == "pawn" and piece.y == 1:
                                 piece.state = "dead"
                                 dark_pieces.append(Knight(piece.x, piece.y, 1))
-                                #print("black knight")
                                 promotion = False
                 # if the promotion is False then the players will be switched
                 if not promotion:
@@ -1476,6 +1481,10 @@ while running:
                                                     piece.can_castle = False
                                                     message = "Castling!"
 
+                        # checking for castling moves of the rooks
+                        if selected.type == "rook" and selected.can_castle:
+                            selected.can_castle = False
+
                         # moving the piece to the new tile
                         selected.x = x
                         selected.y = y
@@ -1525,8 +1534,183 @@ while running:
 
                         # if king is in check, notify the player
                         if in_check:
+                            # notifying the player
                             message = "Check!"
+                            # checking if the king is in checkmate
+                            state = ""
+                            # first we need to see if king has some moves by himself
+                            for piece in light_pieces:
+                                if piece.type == "king":
+                                    piece.possible_moves()
+                                    print(piece.moves)
+                                    if len(piece.moves) == 0:
+                                        state = "no moves"
+                            for piece in dark_pieces:
+                                if piece.type == "king":
+                                    piece.possible_moves()
+                                    if len(piece.moves) == 0:
+                                        state = "no moves"
+                            if state == "no moves":
+                                # now I will check if some piece can take the piece that is giving check
+                                if selected.color == 0:
+                                    for piece in dark_pieces:
+                                        piece.possible_moves()
+                                        for move in piece.moves:
+                                            for piece1 in light_pieces:
+                                                if piece1.x == move[0] and piece1.y == move[1]:
+                                                    piece1.possible_moves()
+                                                    for move1 in piece1.moves:
+                                                        if move1[0] == piece.x and move1[1] == piece.y:
+                                                            state = "can take"
+                                else:
+                                    for piece in light_pieces:
+                                        piece.possible_moves()
+                                        for move in piece.moves:
+                                            for piece1 in dark_pieces:
+                                                if piece1.x == move[0] and piece1.y == move[1]:
+                                                    piece1.possible_moves()
+                                                    for move1 in piece1.moves:
+                                                        if move1[0] == piece.x and move1[1] == piece.y:
+                                                            state = "can take"
+                            if state == "no moves":
+                                # now I will check if some piece can block the check
+                                # getting all the moves of the allied pieces
+                                allied_moves = []
+                                if selected.color == 0:
+                                    for piece in light_pieces:
+                                        piece.possible_moves()
+                                        for move in piece.moves:
+                                            allied_moves.append(move)
+                                else:
+                                    for piece in dark_pieces:
+                                        piece.possible_moves()
+                                        for move in piece.moves:
+                                            allied_moves.append(move)
+                                # getting all the tiles between the king and the piece that is giving check
+                                #print(selected.type)
+                                for piece in light_pieces:
+                                    if piece.type == "king":
+                                        piece.in_checks()
+                                        if in_check:
+                                            coords_of_king = (piece.x, piece.y)
+                                            check_piece = piece.checked_by
+                                if in_check == False:
+                                    for piece in dark_pieces:
+                                        if piece.type == "king":
+                                            piece.in_checks()
+                                            if in_check:
+                                                coords_of_king = (piece.x, piece.y)
+                                                check_piece = piece.checked_by
+                                print(coords_of_king)
+                                # now I will get all the tiles between the king and the piece that is giving check
+                                tiles = []
+                                x = check_piece.x
+                                y = check_piece.y
+                                print(check_piece.type)
+                                print(check_piece.x, check_piece.y)
+                                # checking the x axis, if one of the coordinates on the axis is the same as the king, then the tiles will be added, else not
+                                temp = False
+                                while x > 0:
+                                    tiles.append((x, y))
+                                    x -= 1
+                                for tile in tiles:
+                                    if tile[0] == coords_of_king[0] and tile[1] == coords_of_king[1]:
+                                        temp = True
+                                if temp == False:
+                                    tiles.clear()
+                                # now will check the other side of the x axis
+                                    x = check_piece.x
+                                    y = check_piece.y
+                                    while x < 8:
+                                        tiles.append((x, y))
+                                        x += 1
+                                    for tile in tiles:
+                                        if tile[0] == coords_of_king[0] and tile[1] == coords_of_king[1]:
+                                            temp = True
+                                    if temp == False:
+                                        tiles.clear()
+                                        # now will check the y axis
+                                        x = check_piece.x
+                                        y = check_piece.y
+                                        while y > 0:
+                                            tiles.append((x, y))
+                                            y -= 1
+                                        for tile in tiles:
+                                            if tile[0] == coords_of_king[0] and tile[1] == coords_of_king[1]:
+                                                temp = True
+                                        if temp == False:
+                                            tiles.clear()
+                                            # now will check the other side of the y axis
+                                            x = check_piece.x
+                                            y = check_piece.y
+                                            while y < 8:
+                                                tiles.append((x, y))
+                                                y += 1
+                                            for tile in tiles:
+                                                if tile[0] == coords_of_king[0] and tile[1] == coords_of_king[1]:
+                                                    temp = True
+                                            if temp == False:
+                                                tiles.clear()
+                                                # now will check the diagonals
+                                                x = check_piece.x
+                                                y = check_piece.y
+                                                while x > 0 and y > 0:
+                                                    tiles.append((x, y))
+                                                    x -= 1
+                                                    y -= 1
+                                                for tile in tiles:
+                                                    if tile[0] == coords_of_king[0] and tile[1] == coords_of_king[1]:
+                                                        temp = True
+                                                        print("diagonal 1")
+                                                if temp == False:
+                                                    tiles.clear()
+                                                # now will check the other side of the diagonal
+                                                x = check_piece.x
+                                                y = check_piece.y
+                                                while x < 8 and y < 8:
+                                                    tiles.append((x, y))
+                                                    x += 1
+                                                    y += 1
+                                                for tile in tiles:
+                                                    if tile[0] == coords_of_king[0] and tile[1] == coords_of_king[1]:
+                                                        temp = True
+                                                        print("diagonal 2")
+                                                if temp == False:
+                                                    tiles.clear()
+                                                    # now will check the other diagonal
+                                                    x = check_piece.x
+                                                    y = check_piece.y
+                                                    while x > 0 and y < 8:
+                                                        tiles.append((x, y))
+                                                        x -= 1
+                                                        y += 1
+                                                    for tile in tiles:
+                                                        if tile[0] == coords_of_king[0] and tile[1] == coords_of_king[1]:
+                                                            temp = True
+                                                            print("diagonal 3")
+                                                    if temp == False:
+                                                        tiles.clear()
+                                                        # now will check the other side of the diagonal
+                                                        x = check_piece.x
+                                                        y = check_piece.y
+                                                        while x < 8 and y > 0:
+                                                            tiles.append((x, y))
+                                                            x += 1
+                                                            y -= 1
+                                                        for tile in tiles:
+                                                            if tile[0] == coords_of_king[0] and tile[1] == coords_of_king[1]:
+                                                                temp = True
+                                                                print("diagonal 4")
+                                                        if temp == False:
+                                                            tiles.clear()
+                                # now I will check if some piece can block the check
+                                print(tiles)
+
+                            print(state)
+                            # resetting in_check
                             in_check = False
+                        else:
+                            message = "info text"
 
                         # adding one turn to the number of turns to every pawn that has been added to check
                         for piece in has_to_be_checked:
