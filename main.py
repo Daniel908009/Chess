@@ -177,6 +177,8 @@ def apply_settings(window, var, var1, var2, entry, entry2):
         timer_on = False
     if var == 1:
         special_moves = True
+    else:
+        special_moves = False
     # applying the timer settings
     move_time[0] = int(entry)
     move_time[1] = int(entry2)
@@ -203,6 +205,10 @@ def settings_window():
     label.grid(row=0, column=0)
     # setting up a checkbox for special moves
     var = tkinter.IntVar()
+    if special_moves:
+        var.set(1)
+    else:
+        var.set(0)
     checkbox = tkinter.Checkbutton(frame, variable=var)
     checkbox.grid(row=0, column=1)
     # setting up a label for resizability of the window
@@ -210,6 +216,7 @@ def settings_window():
     label.grid(row=1, column=0)
     # setting up a checkbox for resizability
     var1 = tkinter.IntVar()
+    var1.set(1)
     checkbox = tkinter.Checkbutton(frame, variable=var1)
     checkbox.grid(row=1, column=1)
     # setting up a label for the timer
@@ -217,6 +224,10 @@ def settings_window():
     label.grid(row=2, column=0)
     # setting up a checkbox for the timer
     var2 = tkinter.IntVar()
+    if timer_on:
+        var2.set(1)
+    else:
+        var2.set(0)
     checkbox = tkinter.Checkbutton(frame, variable=var2)
     checkbox.grid(row=2, column=1)
     # creating a label for subsettings of the timer
@@ -307,19 +318,20 @@ class Pawn(Piece):
                 self.moves.append((self.x, self.y+2))
             # en passant logic
             # first checking if there is a piece next to the moving pawn
-            for piece in dark_pieces:
-                if piece.x == self.x+1 and piece.y == self.y and special_moves:
-                    # checking if the piece is a pawn and if it has moved 2 tiles
-                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 2:
-                        self.moves.append((self.x+1, self.y+1))
-                        en_passant_tiles.append((self.x+1, self.y+1))
-                        en_passant = True
-                if piece.x == self.x-1 and piece.y == self.y and special_moves:
-                    # checking if the piece is a pawn and if it has moved 2 tiles
-                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 2:
-                        self.moves.append((self.x-1, self.y+1))
-                        en_passant_tiles.append((self.x-1, self.y+1))
-                        en_passant = True
+            if special_moves:
+                for piece in dark_pieces:
+                    if piece.x == self.x+1 and piece.y == self.y:
+                        # checking if the piece is a pawn and if it has moved 2 tiles
+                        if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 2:
+                            self.moves.append((self.x+1, self.y+1))
+                            en_passant_tiles.append((self.x+1, self.y+1))
+                            en_passant = True
+                    if piece.x == self.x-1 and piece.y == self.y:
+                        # checking if the piece is a pawn and if it has moved 2 tiles
+                        if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 2:
+                            self.moves.append((self.x-1, self.y+1))
+                            en_passant_tiles.append((self.x-1, self.y+1))
+                            en_passant = True
 
         else:
             self.moves.append((self.x, self.y-1))
@@ -327,19 +339,20 @@ class Pawn(Piece):
                 self.moves.append((self.x, self.y-2))
             # en passant logic
             # first checking if there is a piece next to the moving pawn
-            for piece in light_pieces:
-                if piece.x == self.x+1 and piece.y == self.y and special_moves:
-                    # checking if the piece is a pawn and if it has moved 2 tiles
-                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 2:
-                        self.moves.append((self.x+1, self.y-1))
-                        en_passant_tiles.append((self.x+1, self.y-1))
-                        en_passant = True
-                if piece.x == self.x-1 and piece.y == self.y and special_moves:
-                    # checking if the piece is a pawn and if it has moved 2 tiles
-                    if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 2:
-                        self.moves.append((self.x-1, self.y-1))
-                        en_passant_tiles.append((self.x-1, self.y-1))
-                        en_passant = True
+            if special_moves:
+                for piece in light_pieces:
+                    if piece.x == self.x+1 and piece.y == self.y:
+                        # checking if the piece is a pawn and if it has moved 2 tiles
+                        if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 2:
+                            self.moves.append((self.x+1, self.y-1))
+                            en_passant_tiles.append((self.x+1, self.y-1))
+                            en_passant = True
+                    if piece.x == self.x-1 and piece.y == self.y:
+                        # checking if the piece is a pawn and if it has moved 2 tiles
+                        if piece.type == "pawn" and piece.has_moved_2_tiles and self.number_of_moves >= 2:
+                            self.moves.append((self.x-1, self.y-1))
+                            en_passant_tiles.append((self.x-1, self.y-1))
+                            en_passant = True
 
         # removing the moves that are out of the board
         for move in self.moves:
@@ -379,6 +392,7 @@ class Rook(Piece):
         self.value = 5
         self.type = "rook"
         self.state = "alive"
+        self.can_castle = True
         if self.color == 0:
             self.image = resized_light_rook
         else:
@@ -534,7 +548,7 @@ class Bishop(Piece):
 
         # getting all the moves towards top left corner, until one of the values is below 0
         temp = True
-        while x > 0 and y > 0 and temp:
+        while x > 0 and y > 1 and temp:
             self.moves.append((x-1, y-1))
             for piece in light_pieces:
                 if piece.x == x-1 and piece.y == y-1 and piece.state == "alive":
@@ -562,7 +576,7 @@ class Bishop(Piece):
         x = self.x
         y = self.y
         temp2 = True
-        while x > 1 and y < 8 and temp2:
+        while x > 0 and y < 8 and temp2:
             self.moves.append((x-1, y+1))
             for piece in light_pieces:
                 if piece.x == x-1 and piece.y == y+1 and piece.state == "alive":
@@ -576,7 +590,7 @@ class Bishop(Piece):
         x = self.x
         y = self.y
         temp3 = True
-        while x < 8 and y < 8 and temp3:
+        while x < 7 and y < 8 and temp3:
             self.moves.append((x+1, y+1))
             for piece in light_pieces:
                 if piece.x == x+1 and piece.y == y+1 and piece.state == "alive":
@@ -595,6 +609,11 @@ class Bishop(Piece):
         # removing the tiles that are already by allied pieces
         if self.color == 0:
             for piece in light_pieces:
+                for move in self.moves:
+                    if piece.x == move[0] and piece.y == move[1]:
+                        self.moves.remove(move)
+        else:
+            for piece in dark_pieces:
                 for move in self.moves:
                     if piece.x == move[0] and piece.y == move[1]:
                         self.moves.remove(move)
@@ -755,6 +774,8 @@ class King(Piece):
         self.value = 10
         self.type = "king"
         self.state = "alive"
+        self.can_castle = True
+        self.castling_moves = []
         if self.color == 0:
             self.image = resized_light_king
         else:
@@ -797,6 +818,7 @@ class King(Piece):
     
     # this is a good enough implementation of the possible moves  
     def possible_moves(self):
+        global dark_pieces, light_pieces
         self.moves = []
         self.moves.append((self.x+1, self.y))
         self.moves.append((self.x-1, self.y))
@@ -806,6 +828,77 @@ class King(Piece):
         self.moves.append((self.x-1, self.y+1))
         self.moves.append((self.x+1, self.y-1))
         self.moves.append((self.x-1, self.y-1))
+        # castling moves
+        if self.can_castle and special_moves:
+            # checking that at least one of the rooks can castle
+            if self.color == 0:
+                for piece in light_pieces:
+                    if piece.type == "rook":
+                        if piece.can_castle:
+                            x = piece.x
+                            y = piece.y
+                            # checking that there are no pieces between the king and the rook(basicaly checking the x axis bettween them)
+                            temp = True
+                            # checking the rook on the right
+                            while x < self.x and temp:
+                                for piece1 in dark_pieces:
+                                    if piece1.x == x and piece1.y == y:
+                                        temp = False
+                                for piece1 in light_pieces:
+                                    if piece1.x == x and piece1.y == y:
+                                        temp = False
+                                x += 1
+                            if temp:
+                                self.moves.append((self.x-2, self.y))
+                                self.castling_moves.append((self.x-2, self.y))
+                            # checking the rook on the left
+                            temp = True
+                            while x > self.x and temp:
+                                for piece1 in dark_pieces:
+                                    if piece1.x == x and piece1.y == y:
+                                        temp = False
+                                for piece1 in light_pieces:
+                                    if piece1.x == x and piece1.y == y:
+                                        temp = False
+                                x -= 1
+                            if temp:
+                                self.moves.append((self.x+2, self.y))
+                                self.castling_moves.append((self.x+2, self.y))
+            else:
+                for piece in dark_pieces:
+                    if piece.type == "rook":
+                        if piece.can_castle:
+                            #print("can castle")
+                            x = piece.x
+                            y = piece.y
+                            # checking for pieces in between
+                            temp = True
+                            # checking the rook on the right
+                            while x < self.x and temp:
+                                for piece1 in dark_pieces:
+                                    if piece1.x == x and piece1.y == y:
+                                        temp = False
+                                for piece1 in light_pieces:
+                                    if piece1.x == x and piece1.y == y:
+                                        temp = False
+                                x += 1
+                            if temp:
+                                self.moves.append((self.x-2, self.y))
+                                self.castling_moves.append((self.x-2, self.y))
+                            # checking the rook on the left
+                            temp = True
+                            while x > self.x and temp:
+                                for piece1 in dark_pieces:
+                                    if piece1.x == x and piece1.y == y:
+                                        temp = False
+                                for piece1 in light_pieces:
+                                    if piece1.x == x and piece1.y == y:
+                                        temp = False
+                                x -= 1
+                            if temp:
+                                self.moves.append((self.x+2, self.y))
+                                self.castling_moves.append((self.x+2, self.y))
+
         # removing the moves that are out of the board
         for move in self.moves:
             if move[0] < 0 or move[0] > 8 or move[1] < 0 or move[1] > 8:
@@ -821,6 +914,7 @@ class King(Piece):
                 for move in self.moves:
                     if piece.x == move[0] and piece.y == move[1]:
                         self.moves.remove(move)
+
         # getting allllllll the moves from the enemy pieces, so the king can't go there
         if self.color == 0:
             for piece in dark_pieces:
@@ -1049,6 +1143,9 @@ timer_thread = threading.Thread(target=timer)
 timer_on = True
 move_time = [0, 0]
 
+# setting up the message
+message = "info text"
+
 # main loop
 running = True
 # starting the timer
@@ -1122,6 +1219,10 @@ while running:
     if timer_on:
         text2 = font.render("Timer: "+str(minutes) +":"+ str(seconds), True, (0, 0, 0))
         screen.blit(text2, (width- text2.get_width()-50, tile_size * 3))
+
+    # drawing info text below the timer
+    text3 = font.render(message, True, (0, 0, 0))
+    screen.blit(text3, (width- text3.get_width()-50, tile_size * 5+50))
     
     # checking for events 
     for event in pygame.event.get():
@@ -1335,15 +1436,57 @@ while running:
                                 selected.has_moved_2_tiles = True
                                 has_to_be_checked.append(selected)
 
+                        # reseting the message
+                        message = "info text"
+
+                        # castling system
+                        if selected.type == "king" or selected.type == "rook":
+                            selected.can_castle = False
+
+                        # checking if player clicked on a tile that is a castling move
+                        if selected.type == "king" and len(selected.castling_moves) > 0:
+                            for move in selected.castling_moves:
+                                if move[0] == x and move[1] == y:
+                                    if selected.color == 0:
+                                        # checking if the king moved left or right
+                                        if x == selected.x - 2:
+                                            for piece in light_pieces:
+                                                if piece.type == "rook" and piece.x == 0 and piece.y == 1:
+                                                    piece.x = 3
+                                                    piece.can_castle = False
+                                                    message = "Castling!"
+                                        if x == selected.x + 2:
+                                            for piece in light_pieces:
+                                                if piece.type == "rook" and piece.x == 7 and piece.y == 1:
+                                                    piece.x = 5
+                                                    piece.can_castle = False
+                                                    message = "Castling!"
+                                    else:
+                                        # checking if the king moved left or right
+                                        if x == selected.x - 2:
+                                            for piece in dark_pieces:
+                                                if piece.type == "rook" and piece.x == 0 and piece.y == 8:
+                                                    piece.x = 3
+                                                    piece.can_castle = False
+                                                    message = "Castling!"
+                                        if x == selected.x + 2:
+                                            for piece in dark_pieces:
+                                                if piece.type == "rook" and piece.x == 7 and piece.y == 8:
+                                                    piece.x = 5
+                                                    piece.can_castle = False
+                                                    message = "Castling!"
+
                         # moving the piece to the new tile
                         selected.x = x
                         selected.y = y
-
+                                    
                         # if the piece is a pawn and it reached the end of the board, it will activate the promotion system
                         if selected.color == 0 and selected.y == 8 and selected.type == "pawn":
                             promotion = True
+                            message = "Promotion!"
                         if selected.color == 1 and selected.y == 1 and selected.type == "pawn":
                             promotion = True
+                            message = "Promotion!"
 
                         # if en passant happened, the pawn will be taken
                         if en_passant:
@@ -1352,9 +1495,11 @@ while running:
                                     for piece in light_pieces:
                                         if piece.x == x and piece.y == y+1:
                                             piece.state = "dead"
+                                            message = "En passant!"
                                     for piece in dark_pieces:
                                         if piece.x == x and piece.y == y-1:
                                             piece.state = "dead"
+                                            message = "En passant!"
 
                         # resetting the en passant
                         en_passant = False
@@ -1380,7 +1525,7 @@ while running:
 
                         # if king is in check, notify the player
                         if in_check:
-                            print("in check")
+                            message = "Check!"
                             in_check = False
 
                         # adding one turn to the number of turns to every pawn that has been added to check
