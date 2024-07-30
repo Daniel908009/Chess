@@ -6,11 +6,11 @@ import tkinter
 
 # this function is a possible theoretical solution to the pieces having extra moves(bassicaly they can move even though it will put their own king at check, or even checkmate)
 def move_control(object, moves, color):
-    #print(moves)
     global light_pieces, dark_pieces
     # saving the initial coordinates of the piece
     initial_x = object.x
     initial_y = object.y
+    checking_piece = None
     # getting the coordinates of the king of the moving piece
     if color == 0:
         for piece in light_pieces:
@@ -20,6 +20,44 @@ def move_control(object, moves, color):
         for piece in dark_pieces:
             if piece.type == "king":
                 king = piece
+    # getting the coordinates of the piece that is checking the king
+    if color == 0:
+        for piece in dark_pieces:
+            if piece.type == "king":
+                pass
+            elif piece.type == "pawn":
+                if piece.x+1 == king.x and piece.y+1 == king.y:
+                    checking_piece = piece
+                if piece.x-1 == king.x and piece.y+1 == king.y:
+                    checking_piece = piece
+            else:
+                piece.possible_moves("move_control")
+                for move in piece.moves:
+                    if move[0] == king.x and move[1] == king.y:
+                        checking_piece = piece
+    else:
+        for piece in light_pieces:
+            if piece.type == "king":
+                pass
+            elif piece.type == "pawn":
+                if piece.x+1 == king.x and piece.y-1 == king.y:
+                    checking_piece = piece
+                if piece.x-1 == king.x and piece.y-1 == king.y:
+                    checking_piece = piece
+            else:
+                piece.possible_moves("move_control")
+                for move in piece.moves:
+                    if move[0] == king.x and move[1] == king.y:
+                        checking_piece = piece
+
+    if checking_piece != None:
+        # checking if one of the moves of the moving piece can take the checking piece, this is a bug fix
+        for move in moves:
+            if move[0] == checking_piece.x and move[1] == checking_piece.y:
+                moves.clear()
+                moves.append((checking_piece.x, checking_piece.y))
+                return moves
+        
     # setting up the for loop
     change = 0
     for i in range(len(moves)):
@@ -36,21 +74,17 @@ def move_control(object, moves, color):
                 elif piece.type == "pawn":
                     if piece.x+1 == king.x and piece.y-1 == king.y:
                         answer = True
-                        #print("pawn 1")
                     if piece.x-1 == king.x and piece.y-1 == king.y:
                         answer = True
-                        #print("pawn 2")
                 else:
                     if piece.type != object.type:
                         piece.possible_moves("move_control")
                         for move in piece.moves:
                             if move[0] == king.x and move[1] == king.y:
                                 answer = True
-                                #print("other 1")
                 if answer:
                     moves.remove(moves[i - change])
                     change += 1
-                    #print("removed")
                     break
         else:
             # same as the code above, but for the opposite color
@@ -60,26 +94,23 @@ def move_control(object, moves, color):
                 elif piece.type == "pawn":
                     if piece.x+1 == king.x and piece.y+1 == king.y:
                         answer = True
-                        #print("pawn 1 dark")
                     if piece.x-1 == king.x and piece.y+1 == king.y:
                         answer = True
-                        #print("pawn 2 dark")
                 else:
                     if piece.type != object.type:
                         piece.possible_moves("move_control")
                         for move in piece.moves:
                             if move[0] == king.x and move[1] == king.y:
                                 answer = True
-                                #print("other 1 dark")
                 if answer:
                     moves.remove(moves[i - change])
                     change += 1
-                    #print("removed dark")
                     break
-    #print(moves)
+
     # returning the piece to its original position
     object.x = initial_x
     object.y = initial_y
+
     return moves
 
 # function for the end screen loop
@@ -238,9 +269,14 @@ def reset_timer():
 
 # function for applying settings
 def apply_settings(window, var, var1, var2, entry, entry2):
-    global screen, timer_on, width, height, tile_size, move_time, special_moves 
-    if int(entry) > 60 or int(entry) < 0 or int(entry2) > 60 or int(entry2) < 0:
+    global screen, timer_on, width, height, tile_size, move_time, special_moves
+    # checking if the entries are valid
+    try:
+        if int(entry) > 60 or int(entry) < 0 or int(entry2) > 60 or int(entry2) < 0:
+            return
+    except:
         return
+    
     # closing window
     window.destroy()
     # applying resizability selected
@@ -641,6 +677,7 @@ class Knight(Piece):
         # calling the experimental function for the moves control
         if place_of_call == "board":
             self.moves = move_control(self, self.moves, self.color)
+
 # class for the bishop
 class Bishop(Piece):
     def __init__(self, x, y, color):
@@ -1026,7 +1063,7 @@ class King(Piece):
         self.moves.append((self.x-1, self.y+1))
         self.moves.append((self.x+1, self.y-1))
         self.moves.append((self.x-1, self.y-1))
-        # castling moves
+        # castling moves, now fixed and working
         if self.can_castle and special_moves:
             temp = True
             # checking that at least one of the rooks can castle
@@ -1038,21 +1075,17 @@ class King(Piece):
                                 x = piece.x
                                 y = piece.y
                                 # checking that there are no pieces between the king and the rook(basicaly checking the x axis bettween them)
-                                #print(x)
                                 if x == 0:
                                     temp = True
                                     tiles_to_check = [[1, 1], [2, 1], [3, 1]]
                                     # checking if there is a piece in the tiles
                                     for tile in tiles_to_check:
-                                        #print(str(tile) + "tile")
                                         for piece1 in dark_pieces:
                                             if piece1.x == tile[0] and piece1.y == tile[1]:
                                                 temp = False
-                                                #print(piece1.type)
                                         for piece1 in light_pieces:
                                             if piece1.x == tile[0] and piece1.y == tile[1]:
                                                 temp = False
-                                                #print(piece1.type)
                                     if temp:
                                         self.moves.append((2, 1))
                                         self.castling_moves.append((2, 1))
@@ -1062,19 +1095,15 @@ class King(Piece):
                                     tiles_to_check = [[5, 1], [6, 1]]
                                     # checking if there is a piece in the tiles
                                     for tile in tiles_to_check:
-                                        #print(str(tile) + "tile2")
                                         for piece in dark_pieces:
                                             if piece.x == tile[0] and piece.y == tile[1]:
                                                 temp = False
-                                                #print(piece.type)
                                         for piece2 in light_pieces:
                                             if piece2.x == tile[0] and piece2.y == tile[1]:
                                                 temp = False
-                                                #print(piece.type)
                                     if temp:
                                         self.moves.append((6, 1))
                                         self.castling_moves.append((6, 1))
-                                        #print("move added")
 
             else:
                 if not in_check[1]:
@@ -1084,7 +1113,6 @@ class King(Piece):
                                 x = piece.x
                                 y = piece.y
                                 # checking for pieces in between
-                                #print(x)
                                 if x == 0:
                                     temp = True
                                     tiles_to_check = [[5, 8], [6, 8]]
@@ -1093,17 +1121,12 @@ class King(Piece):
                                         for piece1 in dark_pieces:
                                             if piece1.x == tile[0] and piece1.y == tile[1]:
                                                 temp = False
-                                                #print("first rook dard")
-                                                #print(piece.type)
                                         for piece2 in light_pieces:
                                             if piece2.x == tile[0] and piece2.y == tile[1]:
                                                 temp = False
-                                                #print("first rook light")
-                                                #print(piece.type)
                                     if temp:
                                         self.moves.append((6,8))
                                         self.castling_moves.append((6, 8))
-                                        #print("move added")
                                 # checking the other rook
                                 else:
                                     temp = True
@@ -1113,20 +1136,12 @@ class King(Piece):
                                         for piece1 in dark_pieces:
                                             if piece1.x == tile[0] and piece1.y == tile[1]:
                                                 temp = False
-                                               # print("second rook dark")
-                                               # print(piece.type)
                                         for piece2 in light_pieces:
                                             if piece2.x == tile[0] and piece2.y == tile[1]:
                                                 temp = False
-                                               # print("second rook light")
-                                               # print(piece.type)
                                     if temp:
                                         self.moves.append((2, 8))
                                         self.castling_moves.append((2, 8))
-                                        #print("move added")
-
-        #print(self.moves)
-        #print(self.castling_moves)
 
         # removing the tiles that are already by allied pieces
         if self.color == 0:
@@ -1220,11 +1235,24 @@ class King(Piece):
                         for move1 in self.moves:
                             if move[0] == move1[0] and move[1] == move1[1]:
                                 self.moves.remove(move1)
+
         # removing the moves that are out of the board
         for move in self.moves:
             if move[0] <= 0 or move[0] > 8 or move[1] < 1 or move[1] > 8:
                 self.moves.remove(move)
-        print(self.moves)
+        
+             # this is also a simple bug fix, it doesnt solve everything but it solves most of the cases
+        # if there is an enemy piece around the king the king can take it
+        tiles_to_m = [[self.x+1, self.y], [self.x-1, self.y], [self.x, self.y+1], [self.x, self.y-1], [self.x+1, self.y+1], [self.x-1, self.y+1], [self.x+1, self.y-1], [self.x-1, self.y-1]]
+        for tile in tiles_to_m:
+            if self.color == 0:
+                for piece in dark_pieces:
+                    if piece.x == tile[0] and piece.y == tile[1]:
+                        self.moves.append((tile[0], tile[1]))
+            else:
+                for piece in light_pieces:
+                    if piece.x == tile[0] and piece.y == tile[1]:
+                        self.moves.append((tile[0], tile[1]))
 
 # Initialize the game
 pygame.init()
@@ -1468,7 +1496,6 @@ while running:
                     # checking if the white queen was clicked
                 if current_player == "light":
                     if x > tile_size*2 and x < tile_size*3 and y > tile_size*9 and y < tile_size*10:
-                        #print("white queen")
                         for piece in light_pieces:
                             if piece.type == "pawn" and piece.y == 8:
                                 piece.state = "dead"
@@ -1917,15 +1944,12 @@ while running:
                                             state = "can block"
 
                             # notifiying the player about the check results
-                            #print(str (state) + "this is the state")
                             if state == "no moves":
                                 end_screen(current_player)
-                            if state == "can take":
+                            if state == "can take" or state == "":
                                 message = "Check!"
                             if state == "can block":
                                 message = "Check!"
-                            if state == "":
-                                message = "Ups something went wrong"
                             in_check = [False, False]
                         else:
                             message = "info text"
@@ -1971,7 +1995,7 @@ while running:
                         # reseting timer
                         reset_timer()
 
-        # technicaly this can only happen in certain situations(the checkmate system works only sometimes)
+        # technicaly this can only happen in certain situations(the checkmate system should always work, however better safe than sorry)
     # checking if both kings are alive
     for piece in light_pieces:
         if piece.type == "king" and piece.state == "dead":
