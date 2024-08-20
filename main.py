@@ -1,6 +1,12 @@
 import pygame
 import threading
 import tkinter
+import os
+import sys
+if hasattr(sys, '_MEIPASS'):
+    base_path = sys._MEIPASS
+else:
+    base_path = os.path.abspath(".")
 
     # functions
 
@@ -306,7 +312,7 @@ def settings_window():
     window = tkinter.Tk()
     window.title("Settings")
     window.geometry("700x400")
-    window.iconbitmap("settings_icon.ico")
+    window.iconbitmap(os.path.join(base_path, "settings_icon.ico"))
     window.resizable(False, False)
     # setting up the main label
     label = tkinter.Label(window, text="Settings", font=("Arial", 24))
@@ -1261,66 +1267,66 @@ width = 600
 height = int(width//1.25)
 screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
 pygame.display.set_caption("Chess")
-pygame.display.set_icon(pygame.image.load("icon.png"))
+pygame.display.set_icon(pygame.image.load(os.path.join(base_path, "icon.png")))
 clock = pygame.time.Clock()
 
 # setting the tile size, this will be mainly used later in the development for resizability
 tile_size = height//10
 
 # loading the images and resizing them all
-light_pawn = pygame.image.load("light_pawn.png")
-dark_pawn = pygame.image.load("dark_pawn.png")
+light_pawn = pygame.image.load(os.path.join(base_path, "light_pawn.png"))
+dark_pawn = pygame.image.load(os.path.join(base_path, "dark_pawn.png"))
 resized_light_pawn = pygame.transform.scale(light_pawn, (tile_size, tile_size))
 resized_dark_pawn = pygame.transform.scale(dark_pawn, (tile_size, tile_size))
-light_bishop = pygame.image.load("light_bishop.png")
-dark_bishop = pygame.image.load("dark_bishop.png")
+light_bishop = pygame.image.load(os.path.join(base_path, "light_bishop.png"))
+dark_bishop = pygame.image.load(os.path.join(base_path, "dark_bishop.png"))
 resized_light_bishop = pygame.transform.scale(light_bishop, (tile_size, tile_size))
 resized_dark_bishop = pygame.transform.scale(dark_bishop, (tile_size, tile_size))
-light_rook = pygame.image.load("light_rook.png")
-dark_rook = pygame.image.load("dark_rook.png")
+light_rook = pygame.image.load(os.path.join(base_path, "light_rook.png"))
+dark_rook = pygame.image.load(os.path.join(base_path, "dark_rook.png"))
 resized_light_rook = pygame.transform.scale(light_rook, (tile_size, tile_size))
 resized_dark_rook = pygame.transform.scale(dark_rook, (tile_size, tile_size))
-light_horse = pygame.image.load("light_horse.png")
-dark_horse = pygame.image.load("dark_horse.png")
+light_horse = pygame.image.load(os.path.join(base_path, "light_horse.png"))
+dark_horse = pygame.image.load(os.path.join(base_path, "dark_horse.png"))
 resized_light_horse = pygame.transform.scale(light_horse, (tile_size, tile_size))
 resized_dark_horse = pygame.transform.scale(dark_horse, (tile_size, tile_size))
-light_queen = pygame.image.load("light_queen.png")
-dark_queen = pygame.image.load("dark_queen.png")
+light_queen = pygame.image.load(os.path.join(base_path, "light_queen.png"))
+dark_queen = pygame.image.load(os.path.join(base_path, "dark_queen.png"))
 resized_light_queen = pygame.transform.scale(light_queen, (tile_size, tile_size))
 resized_dark_queen = pygame.transform.scale(dark_queen, (tile_size, tile_size))
-light_king = pygame.image.load("light_king.png")
-dark_king = pygame.image.load("dark_king.png")
+light_king = pygame.image.load(os.path.join(base_path, "light_king.png"))
+dark_king = pygame.image.load(os.path.join(base_path, "dark_king.png"))
 resized_light_king = pygame.transform.scale(light_king, (tile_size, tile_size))
 resized_dark_king = pygame.transform.scale(dark_king, (tile_size, tile_size))
-settings = pygame.image.load("settings.png")
+settings = pygame.image.load(os.path.join(base_path, "settings.png"))
 resized_settings = pygame.transform.scale(settings, (tile_size, tile_size))
 
 # custom cursor images
 cursor = None
 # images for the cursor
-white_pawn = pygame.image.load("white_pawn.png")
+white_pawn = pygame.image.load(os.path.join(base_path, "white_pawn.png"))
 resized_white_pawn = pygame.transform.scale(white_pawn, (tile_size//2, tile_size//2))
-black_pawn = pygame.image.load("black_pawn.png")
+black_pawn = pygame.image.load(os.path.join(base_path, "black_pawn.png"))
 resized_black_pawn = pygame.transform.scale(black_pawn, (tile_size//2, tile_size//2))
-white_bishop = pygame.image.load("white_bishop.png")
+white_bishop = pygame.image.load(os.path.join(base_path, "white_bishop.png"))
 resized_white_bishop = pygame.transform.scale(white_bishop, (tile_size//2, tile_size//2))
-black_bishop = pygame.image.load("black_bishop.png")
+black_bishop = pygame.image.load(os.path.join(base_path, "black_bishop.png"))
 resized_black_bishop = pygame.transform.scale(black_bishop, (tile_size//2, tile_size//2))
-white_rook = pygame.image.load("white_rook.png")
+white_rook = pygame.image.load(os.path.join(base_path, "white_rook.png"))
 resized_white_rook = pygame.transform.scale(white_rook, (tile_size//2, tile_size//2))
-black_rook = pygame.image.load("black_rook.png")
+black_rook = pygame.image.load(os.path.join(base_path, "black_rook.png"))
 resized_black_rook = pygame.transform.scale(black_rook, (tile_size//2, tile_size//2))
-white_horse = pygame.image.load("white_horse.png")
+white_horse = pygame.image.load(os.path.join(base_path, "white_horse.png"))
 resized_white_horse = pygame.transform.scale(white_horse, (tile_size//2, tile_size//2))
-black_horse = pygame.image.load("black_horse.png")
+black_horse = pygame.image.load(os.path.join(base_path, "black_horse.png"))
 resized_black_horse = pygame.transform.scale(black_horse, (tile_size//2, tile_size//2))
-white_queen = pygame.image.load("white_queen.png")
+white_queen = pygame.image.load(os.path.join(base_path, "white_queen.png"))
 resized_white_queen = pygame.transform.scale(white_queen, (tile_size//2, tile_size//2))
-black_queen = pygame.image.load("black_queen.png")
+black_queen = pygame.image.load(os.path.join(base_path, "black_queen.png"))
 resized_black_queen = pygame.transform.scale(black_queen, (tile_size//2, tile_size//2))
-white_king = pygame.image.load("white_king.png")
+white_king = pygame.image.load(os.path.join(base_path, "white_king.png"))
 resized_white_king = pygame.transform.scale(white_king, (tile_size//2, tile_size//2))
-black_king = pygame.image.load("black_king.png")
+black_king = pygame.image.load(os.path.join(base_path, "black_king.png"))
 resized_black_king = pygame.transform.scale(black_king, (tile_size//2, tile_size//2))
 
 # setting up the timer
